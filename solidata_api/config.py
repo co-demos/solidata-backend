@@ -41,7 +41,7 @@ def formatEnvVar(var_name, format_type='boolean', separator=',') :
 config_name    = os.getenv('RUN_MODE',     'default')
 config_mongodb = os.getenv('MONGODB_MODE', 'local')
 config_docker  = os.getenv('DOCKER_MODE',  'docker_off')
-config_auth    = os.getenv('AUTH_MODE',    'default')
+config_auth    = os.getenv('AUTH_MODE',    'internal')
 
 print()
 print("$ config_name : ",    config_name)  
@@ -121,13 +121,15 @@ os.environ["MONGODB_URI"] = mongodb_uri
 
 class BaseConfig(object):  
 
-  CODE_LINK = "<a target='_blank' href='https://github.com/entrepreneur-interet-general/solidata_backend'>Solidata_backend</a>"
+  # CODE_LINK = "<a target='_blank' href='https://github.com/entrepreneur-interet-general/solidata_backend'>Solidata_backend</a>"
+  CODE_LINK = "<a target='_blank' href='"+os.getenv('CODE_URL')+"'>Solidata_backend</a>"
+  CODE_URL = os.getenv('CODE_URL')
 
   # APP VERSION 
-  APP_VERSION = os.getenv('APP_VERSION')
+  APP_VERSION = os.getenv('APP_VERSION') 
   
   # RUN_MODE          = "dev"
-  RUN_MODE = os.getenv("RUN_MODE")
+  RUN_MODE  = os.getenv("RUN_MODE")
 
   # DEBUG              = True
   DEBUG = formatEnvVar('DEBUG', format_type='boolean') # True
@@ -159,6 +161,12 @@ class BaseConfig(object):
   
   # used for encryption and session management
 
+  """ AUTH MODE """
+  AUTH_MODE = os.getenv("AUTH_MODE")
+  AUTH_URL_ROOT_LOCAL = os.getenv("AUTH_URL_ROOT_LOCAL")
+  AUTH_URL_ROOT_DISTANT_PROD = os.getenv("AUTH_URL_ROOT_DISTANT_PROD")
+  AUTH_URL_ROOT_DISTANT_PREPOD = os.getenv("AUTH_URL_ROOT_DISTANT_PREPOD")
+
   """ RESTPLUS CONFIG """
   SWAGGER_UI_DOC_EXPANSION    = 'list'
   SWAGGER_UI_JSONEDITOR       = True
@@ -181,20 +189,16 @@ class BaseConfig(object):
 
   JWT_REFRESH_TOKEN_EXPIRES = timedelta(days=10*365)  
 
-  # JWT_IDENTITY_CLAIM              = "_id"
+  # JWT_IDENTITY_CLAIM  = "_id"
   ### custom JWT expirations
-  # JWT_ANONYMOUS_REFRESH_TOKEN_EXPIRES      = timedelta(minutes=15)  
-  # JWT_CONFIRM_EMAIL_REFRESH_TOKEN_EXPIRES = timedelta(days=7)  
-  # JWT_RESET_PWD_ACCESS_TOKEN_EXPIRES      = timedelta(days=1)  
-
   JWT_ANONYMOUS_REFRESH_TOKEN_EXPIRES_VAL  = formatEnvVar("JWT_ANONYMOUS_REFRESH_TOKEN_EXPIRES", format_type='integer')
   JWT_ANONYMOUS_REFRESH_TOKEN_EXPIRES      = timedelta(minutes=JWT_ANONYMOUS_REFRESH_TOKEN_EXPIRES_VAL)
 
   JWT_CONFIRM_EMAIL_REFRESH_TOKEN_EXPIRES_VAL  = formatEnvVar("JWT_CONFIRM_EMAIL_REFRESH_TOKEN_EXPIRES", format_type='integer')
-  JWT_CONFIRM_EMAIL_REFRESH_TOKEN_EXPIRES  = timedelta(days=JWT_CONFIRM_EMAIL_REFRESH_TOKEN_EXPIRES_VAL)
+  JWT_CONFIRM_EMAIL_REFRESH_TOKEN_EXPIRES      = timedelta(days=JWT_CONFIRM_EMAIL_REFRESH_TOKEN_EXPIRES_VAL)
 
   JWT_RESET_PWD_ACCESS_TOKEN_EXPIRES_VAL  = formatEnvVar("JWT_RESET_PWD_ACCESS_TOKEN_EXPIRES", format_type='integer')
-  JWT_RESET_PWD_ACCESS_TOKEN_EXPIRES       = timedelta(days=JWT_RESET_PWD_ACCESS_TOKEN_EXPIRES_VAL)  
+  JWT_RESET_PWD_ACCESS_TOKEN_EXPIRES      = timedelta(days=JWT_RESET_PWD_ACCESS_TOKEN_EXPIRES_VAL)  
 
   # beware not putting anything in JWT_HEADER_TYPE like 'Bearer', 
   # otherwise @jwt_required will look for an Authorization : Bearer <JWT> / 
@@ -231,15 +235,6 @@ class BaseConfig(object):
 
   """ EMAILING """
   # # email server
-  # MAIL_SERVER         = 'smtp.googlemail.com'
-  # MAIL_PORT           = 465
-  # MAIL_USE_TLS         = False
-  # MAIL_USE_SSL         = True
-  # MAIL_USERNAME         = os.environ.get('MAIL_USERNAME')
-  # MAIL_PASSWORD         = os.environ.get('MAIL_PASSWORD')
-  # # administrator list
-  # ADMINS            = ['your-gmail-username@gmail.com']
-  # MAIL_DEFAULT_SENDER      = 'your-gmail-username@gmail.com'
   MAIL_SERVER        = os.getenv('MAIL_SERVER') # 'smtp.googlemail.com'
   MAIL_PORT          = formatEnvVar('MAIL_PORT', format_type='integer') # 465
   MAIL_USE_TLS       = formatEnvVar('MAIL_USE_TLS', format_type='boolean') # False
@@ -263,13 +258,13 @@ class Preprod(BaseConfig) :
 
   REDIRECTION_FRONT  = os.getenv('REDIRECTION_FRONT_PREPROD')# "http://preprod.toktok.co-demos.com" 
 
-  """ EMAILING """
+  # """ EMAILING """
   # MAIL_PORT        = 587
-  MAIL_PORT        = formatEnvVar('MAIL_PORT', format_type='integer') # 465
+  # MAIL_PORT        = formatEnvVar('MAIL_PORT', format_type='integer') # 465
   # MAIL_USE_TLS     = True
   # MAIL_USE_SSL     = False
-  MAIL_USE_TLS       = formatEnvVar('MAIL_USE_TLS', format_type='boolean') # False
-  MAIL_USE_SSL       = formatEnvVar('MAIL_USE_SSL', format_type='boolean') # True
+  # MAIL_USE_TLS       = formatEnvVar('MAIL_USE_TLS', format_type='boolean') # False
+  # MAIL_USE_SSL       = formatEnvVar('MAIL_USE_SSL', format_type='boolean') # True
 
   """ HOST - prod IP and domain name"""
   SERVER_NAME_TEST   = "True" 
@@ -281,13 +276,13 @@ class Prod(BaseConfig) :
 
   REDIRECTION_FRONT    = os.getenv('REDIRECTION_FRONT_PROD')# "http://toktok.co-demos.com" 
 
-  """ EMAILING """
+  # """ EMAILING """
   # MAIL_PORT        = 587
-  MAIL_PORT        = formatEnvVar('MAIL_PORT', format_type='integer') # 465
+  # MAIL_PORT          = formatEnvVar('MAIL_PORT', format_type='integer') # 465
   # MAIL_USE_TLS     = True
   # MAIL_USE_SSL     = False
-  MAIL_USE_TLS       = formatEnvVar('MAIL_USE_TLS', format_type='boolean') # False
-  MAIL_USE_SSL       = formatEnvVar('MAIL_USE_SSL', format_type='boolean') # True
+  # MAIL_USE_TLS       = formatEnvVar('MAIL_USE_TLS', format_type='boolean') # False
+  # MAIL_USE_SSL       = formatEnvVar('MAIL_USE_SSL', format_type='boolean') # True
 
   """ HOST - prod IP and domain name"""
   SERVER_NAME_TEST   = "True" 
