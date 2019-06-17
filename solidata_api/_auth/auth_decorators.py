@@ -19,6 +19,9 @@ from flask_jwt_extended import (
     get_jwt_claims, get_raw_jwt
 )
 
+### import ext JWT check 
+from .auth_distant import distant_auth # checkJWT
+
 
 ### + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + ###
 ### AUTH DECORATORS
@@ -65,6 +68,9 @@ def add_claims_to_access_token(user):
   """
   log.debug("-@- claims loader")
   log.debug("user : \n %s", pformat(user))
+
+  computed = distant_auth(func_name="add_claims_to_access_token", as_decorator=False)
+  log.debug("computed : %s", computed)
 
   sent_token = get_raw_jwt()
   log.debug("sent_token : \n %s", pformat(sent_token))
@@ -114,6 +120,9 @@ def user_identity_lookup(user):
   log.debug("-@- identity loader")
   log.debug("user : \n %s", pformat(user))
   
+  computed = distant_auth(func_name="user_identity_lookup", as_decorator=False)
+  log.debug("computed : %s", computed)
+
   try : 
     ### load email as identity in the jwt
     # identity = user["infos"]["email"]
@@ -146,9 +155,9 @@ def my_expired_token_callback():
   ### otherwise return a link to refresh refresh_token
 
   return jsonify({
-      'msg'		: 'The token has expired',
-      'status'	: 401,
-      'sub_status': 42,
+    'msg'       : 'The token has expired',
+    'status'    : 401,
+    'sub_status': 42,
   }), 401
 
 
@@ -163,6 +172,7 @@ def anonymous_required(func):
   Check if user is not logged yet in access_token 
   and has a 'anonymous' role
   """
+  @distant_auth(func_name="anonymous_required")
   @wraps(func)
   def wrapper(*args, **kwargs):
     
@@ -192,6 +202,7 @@ def anonymous_or_guest_required(func):
   Check if user is not logged yet in access_token 
   and has a 'guest' or 'anonymous' role
   """
+  @distant_auth(func_name="anonymous_or_guest_required")
   @wraps(func)
   def wrapper(*args, **kwargs):
     
@@ -216,6 +227,7 @@ def guest_required(func):
   Check if user is not logged yet in access_token 
   and has a 'guest' or 'anonymous' role
   """
+  @distant_auth(func_name="guest_required")
   @wraps(func)
   def wrapper(*args, **kwargs):
     
@@ -239,6 +251,7 @@ def admin_required(func):
   """
   Check if user has admin level in access_token
   """
+  @distant_auth(func_name="admin_required")
   @wraps(func)
   def wrapper(*args, **kwargs):
     
@@ -262,6 +275,7 @@ def staff_required(func):
   """
   Check if user has admin or staff level in access_token
   """
+  @distant_auth(func_name="staff_required")
   @wraps(func)
   def wrapper(*args, **kwargs):
     
@@ -285,6 +299,7 @@ def renew_pwd_required(func):
   """
   Check if access_token has a claim 'renew_pwd' == True
   """
+  @distant_auth(func_name="renew_pwd_required")
   @wraps(func)
   def wrapper(*args, **kwargs):
     
@@ -309,6 +324,7 @@ def reset_pwd_required(func):
   """
   Check if access_token has a claim 'reset_pwd' == True
   """
+  @distant_auth(func_name="reset_pwd_required")
   @wraps(func)
   def wrapper(*args, **kwargs):
     
@@ -358,6 +374,7 @@ def current_user_required(func):
   - if he has admin level 
   """
   
+  @distant_auth(func_name="current_user_required")
   @wraps(func)
   def wrapper(*args, **kwargs):
 

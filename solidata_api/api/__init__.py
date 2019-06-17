@@ -81,14 +81,14 @@ from base64 import b64decode, b64encode
 # cf : https://stackoverflow.com/questions/44892946/rsa-encryption-in-python-decrypt-in-js
 # cf : https://pythonhosted.org/pycrypto/Crypto.PublicKey.RSA._RSAobj-class.html#exportKey 
 # cf : https://www.pycryptodome.org/en/latest/src/examples.html 
-random_generator 	= Random.new().read
-key_pair 			= RSA.generate(1024, random_generator)
+random_generator = Random.new().read
+key_pair = RSA.generate(1024, random_generator)
 
-private_key_str		= key_pair.exportKey().decode("utf-8")
+private_key_str = key_pair.exportKey().decode("utf-8")
 log.debug("private_key_str : \n %s", pformat(private_key_str))
 
-public_key 			= key_pair.publickey()
-public_key_str		= public_key.exportKey().decode("utf-8")
+public_key     = key_pair.publickey()
+public_key_str = public_key.exportKey().decode("utf-8")
 log.debug("public_key_str : \n %s", pformat(public_key_str))
 
 # cf : https://medium.com/@DannyAziz97/rsa-encryption-with-js-python-7e031cbb66bb
@@ -133,12 +133,13 @@ from solidata_api._core.cors 			import CORS, cross_origin
 # ### import data serializers
 # from solidata_api._serializers.schema_users import *  
 
-from solidata_api._auth.authorizations 	import authorizations as auth_check
+from solidata_api._auth.authorizations import authorizations as auth_check
 
-from solidata_api._auth 				import ( 
+# from solidata_api._auth.auth_distant import *
+from solidata_api._auth import ( 
   admin_required, current_user_required, confirm_email_required, guest_required,
   anonymous_required, renew_pwd_required, reset_pwd_required 
-  )
+)
 
 from solidata_api._parsers 	import * # pagination_arguments
 # from solidata_api._parsers.parser_pagination 	import * # pagination_arguments
