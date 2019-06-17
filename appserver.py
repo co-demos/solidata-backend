@@ -108,14 +108,21 @@ def app_runner(mode, docker, host, port, mongodb, auth_mode, rsa, anojwt, antisp
     else : 
       env_path_mailing = Path('.') / 'example.env.mailing'
 
+    # if auth_mode != 'internal' : 
+    #   env_path_auth = Path('.') / '.env.auth'
+    # else : 
+    env_path_auth = Path('.') / 'example.env.auth'
+
   else : 
     env_path_global = Path('.') / '.env.global'
     env_path_mongodb = Path('.') / '.env.mongodb'
     env_path_mailing = Path('.') / '.env.mailing'
+    env_path_auth = Path('.') / '.env.auth'
 
   load_dotenv(env_path_global, verbose=True)
   load_dotenv(env_path_mongodb, verbose=True)
   load_dotenv(env_path_mailing, verbose=True)
+  load_dotenv(env_path_auth, verbose=True)
 
 
 
@@ -141,6 +148,7 @@ def app_runner(mode, docker, host, port, mongodb, auth_mode, rsa, anojwt, antisp
     run_mode=mode, 
     docker_mode=docker,
     mongodb_mode=mongodb,
+
     auth_mode=auth_mode,
 
     RSA_mode=rsa, 

@@ -12,19 +12,25 @@ from functools import wraps, partial, update_wrapper
 from flask import request, current_app as app, jsonify
 
 def getDistantAuthUrl():
+
   auth_mode = app.config["AUTH_MODE"]
   log.debug("getDistantAuthUrl / auth_mode : %s", auth_mode )
 
-  auth_url_root_modes = {
-    "local" : app.config["AUTH_URL_ROOT_LOCAL"],
-    "distant_prod" : app.config["AUTH_URL_ROOT_DISTANT_PROD"],
-    "distant_preprod" : app.config["AUTH_URL_ROOT_DISTANT_PREPOD"],
-  }
+  if auth_mode != 'internal' : 
 
-  auth_url_root = auth_url_root_modes[auth_mode]
-  log.debug("getDistantAuthUrl / auth_url_root : %s", auth_url_root )
+    auth_url_root_modes = {
+      "local" : app.config["AUTH_URL_ROOT_LOCAL"],
+      "distant_prod" : app.config["AUTH_URL_ROOT_DISTANT_PROD"],
+      "distant_preprod" : app.config["AUTH_URL_ROOT_DISTANT_PREPOD"],
+    }
 
-  return auth_url_root
+    auth_url_root = auth_url_root_modes[auth_mode]
+    log.debug("getDistantAuthUrl / auth_url_root : %s", auth_url_root )
+
+    return auth_url_root
+  
+  else :
+    return False
 
 
 def checkJWT(token, token_type, return_resp=False):
@@ -52,6 +58,9 @@ def distant_auth (func_name=None, as_decorator=True) :
   log.debug("-@- distant_auth ... func_name : %s", func_name)
   computed = "test distannt_auth not as decorator"
   
+  auth_url_root = getDistantAuthUrl()
+  log.debug("-@- distant_auth / auth_url_root : %s", auth_url_root )
+
   def _distant_auth(func):
     """
     """

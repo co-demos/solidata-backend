@@ -10,10 +10,12 @@ from pathlib import Path  # python3 only
 env_path_global = Path('.') / '.env.global'
 env_path_mongodb = Path('.') / '.en.mongodb'
 env_path_mailing = Path('.') / '.env.mailing'
+env_path_auth = Path('.') / '.env.auth'
 
 load_dotenv(env_path_global, verbose=True)
 load_dotenv(env_path_mongodb, verbose=True)
 load_dotenv(env_path_mailing, verbose=True)
+load_dotenv(env_path_auth, verbose=True)
 
 ### override env vars for Docker
 os.environ["DOCKER_MODE"]	 = 'docker_on'
@@ -31,6 +33,8 @@ run=os.getenv('RUN_MODE', 'prod')
 docker=os.getenv('DOCKER_MODE', 'docker_off')
 mongodb=os.getenv('MONGODB_MODE', 'distant')
 
+auth_mode=os.getenv('AUTH_MODE', 'internal')
+
 RSA=os.getenv('RSA_MODE', False)
 anojwt=os.getenv('ANOJWT_MODE', False)
 antispam=os.getenv('ANTISPAM_MODE', False)
@@ -44,6 +48,8 @@ app = create_app(
   run_mode=run, 
   docker_mode=docker,
   mongodb_mode=mongodb,
+
+  auth_mode=auth_mode,
 
   RSA_mode=RSA,
   anojwt_mode=anojwt,
