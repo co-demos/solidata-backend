@@ -89,21 +89,15 @@ def create_app(
 
   ### create Flask app
   app = Flask(app_name)
-  # app.wsgi_app = ProxyFix(app.wsgi_app)
-  # app.config.SWAGGER_VALIDATOR_URL = 'http://domain.com/validator'
 
   ### load config 
   if run_mode == "prod" : 	
-    # app.config.from_object('solidata_api.config_prod.Prod')
     app.config.from_object('solidata_api.config.Prod')
   elif run_mode == "preprod" : 
-    # app.config.from_object('solidata_api.config_prod.Preprod')
     app.config.from_object('solidata_api.config.Preprod')
-  elif run_mode == "dev_email" : 
-    # app.config.from_object('solidata_api.config_prod.DevEmail')
-    app.config.from_object('solidata_api.config.BaseConfig')
+  # elif run_mode == "dev_email" : 
+  #   app.config.from_object('solidata_api.config.BaseConfig')
   else : 
-    # app.config.from_object('solidata_api.config.BaseConfig')
     app.config.from_object('solidata_api.config.BaseConfig')
 
 
