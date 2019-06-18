@@ -349,6 +349,7 @@ def confirm_email_required(func):
   """
   Check if access_token has a claim 'confirm_email' == True
   """
+  @distant_auth(func_name="confirm_email_required")
   @wraps(func)
   def wrapper(*args, **kwargs):
     

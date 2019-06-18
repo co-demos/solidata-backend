@@ -102,10 +102,10 @@ def create_app(
 
 
   ### append SALT and ANOJWT env vars to config 
-  app.config["RSA_MODE"]       = RSA_mode
-  app.config["ANOJWT_MODE"]    = anojwt_mode
-  app.config["ANTISPAM_MODE"]  = antispam_mode
-  app.config["ANTISPAM_VALUE"] = antispam_value
+  # app.config["RSA_MODE"]       = RSA_mode
+  # app.config["ANOJWT_MODE"]    = anojwt_mode
+  # app.config["ANTISPAM_MODE"]  = antispam_mode
+  # app.config["ANTISPAM_VALUE"] = antispam_value
 
   # app.config["SWAGGER_BASE_URL"] = os.environ["SWAGGER_BASE_URL"] = app.config["SERVER_NAME"]
   

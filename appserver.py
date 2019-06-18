@@ -127,11 +127,18 @@ def app_runner(mode, docker, host, port, mongodb, auth_mode, rsa, anojwt, antisp
 
 
   ### OVERIDE AND SET UP ENV VARS FROM CLI 
-  os.environ["DOMAIN_ROOT"]   = host
-  os.environ["DOMAIN_PORT"]   = port
-  os.environ["DOCKER_MODE"]   = docker
-  os.environ["MONGODB_MODE"]  = mongodb
-  os.environ["AUTH_MODE"]     = auth_mode
+  os.environ["DOMAIN_ROOT"]    = host
+  os.environ["DOMAIN_PORT"]    = port
+  os.environ["DOCKER_MODE"]    = docker
+  os.environ["MONGODB_MODE"]   = mongodb
+
+  os.environ["AUTH_MODE"]      = auth_mode
+
+  os.environ["RSA_MODE"]       = rsa
+  os.environ["ANOJWT_MODE"]    = anojwt
+  os.environ["ANTISPAM_MODE"]  = antispam
+  os.environ["ANTISPAM_VALUE"] = antispam_val
+  os.environ["HTTPS_MODE"]     = https
 
   # if mode not in ["prod", "preprod"]:
   # os.environ["SERVER_NAME"]  = host + ":" + port

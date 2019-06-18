@@ -10,11 +10,12 @@ from datetime import timedelta
 
 def formatEnvVar(var_name, format_type='boolean', separator=',', dict_separator=":") : 
 
-  print("formatEnvVar / var_name : ", var_name)
-  env_var = os.getenv(var_name)
-  print("formatEnvVar / env_var : ", env_var)
+  # print("formatEnvVar / var_name : ", var_name)
 
-  if format_type == 'boolean' : 
+  env_var = os.getenv(var_name)
+  print("formatEnvVar / env_var : {} / var_name : {} ".format(env_var, var_name) )
+
+  if format_type == 'boolean' :
     if env_var in [ 'y', 'Y','yes', 'Yes', 'YES', 'true', 'True', 'TRUE', '1'] : 
       return True
     else :
@@ -40,7 +41,7 @@ def formatEnvVar(var_name, format_type='boolean', separator=',', dict_separator=
 
     if env_var : 
       temp_list = env_var.split(separator)
-      print("formatEnvVar / temp_list : ", temp_list)
+      # print("formatEnvVar / temp_list : ", temp_list)
       env_dict = {}
       if len(temp_list) > 0 : 
         for tuple_dict in temp_list : 
@@ -174,6 +175,7 @@ class BaseConfig(object):
     os.environ["DOMAIN_NAME"] = http_mode + "://" + DOMAIN_ROOT + ":" + str(DOMAIN_PORT)
     DOMAIN_NAME =  os.getenv("DOMAIN_NAME")
 
+  HTTPS_MODE = http_mode
 
   TEMPLATES_FOLDER   = "/templates"
   ROOT_FOLDER        = os.getcwd()
@@ -316,6 +318,13 @@ class BaseConfig(object):
       }
     }
 
+  """ OPTIONS ENCRYPTION / PROTECTION """
+  RSA_MODE       = os.getenv('RSA_MODE')
+  ANOJWT_MODE    = os.getenv('ANOJWT_MODE')
+  ANTISPAM_MODE  = os.getenv('ANTISPAM_MODE')
+  ANTISPAM_VALUE = os.getenv('ANTISPAM_VALUE')
+  HTTPS_MODE     = os.getenv('HTTPS_MODE')
+
   """ RESTPLUS CONFIG """
   SWAGGER_UI_DOC_EXPANSION    = 'list'
   SWAGGER_UI_JSONEDITOR       = True
@@ -354,8 +363,8 @@ class BaseConfig(object):
   # not very comptatible with Flask-RestPlus authorization schemas described in _auth.authorizations.py
   JWT_HEADER_TYPE = "" 
 
-  # JWT_RENEW_REFRESH_TOKEN_AT_LOGIN      = True 
-  JWT_RENEW_REFRESH_TOKEN_AT_LOGIN  = formatEnvVar('JWT_RENEW_REFRESH_TOKEN_AT_LOGIN', format_type='boolean') # False 
+  # JWT_RENEW_REFRESH_TOKEN_AT_LOGIN = True 
+  JWT_RENEW_REFRESH_TOKEN_AT_LOGIN = formatEnvVar('JWT_RENEW_REFRESH_TOKEN_AT_LOGIN', format_type='boolean') # False 
 
 
   """ MONGODB """
@@ -379,8 +388,6 @@ class BaseConfig(object):
   MONGO_COLL_LICENCES             = os.getenv("MONGO_COLL_LICENCES", "licences")
   MONGO_COLL_JWT_BLACKLIST        = os.getenv("MONGO_COLL_JWT_BLACKLIST", "jwt_blacklist")
 
-  """ AUTH MODE """ 
-  AUTH_MODE = os.getenv("AUTH_MODE", "local")
 
   """ EMAILING """
   # # email server
