@@ -7,12 +7,24 @@ from log_config import log, pprint, pformat
 log.debug (">>> _auth ... loading auth_distant ...")
 
 import requests
+import json
 
 from functools import wraps, partial, update_wrapper
 from flask import request, current_app as app, jsonify
 
 
 functions_protocols = {
+  "login_user" : {
+    "auth_func" : "",
+    "endpoint_config" : "user_login",
+    "endpoint_code" : "login",
+  },
+  "register_user" : {
+    "auth_func" : "",
+    "endpoint_config" : "user_edit",
+    "endpoint_code" : "register",
+  },
+  ### TO DO 
   "add_claims_to_access_token" : {
     "auth_func" : "",
     "endpoint_config" : "users_list",
@@ -100,9 +112,10 @@ def getDistantAuthUrl():
 def getDistantEndpoinntconfig (func_name) : 
   """ 
   """ 
-  print (". "*50)
+  # print (". "*50)
 
   auth_dist_configs = app.config["AUTH_DISTANT_ENDPOINTS"]
+
   func_protocol = functions_protocols[func_name]
   field = func_protocol["endpoint_config"]
   subfield = func_protocol["endpoint_code"]
@@ -110,7 +123,8 @@ def getDistantEndpoinntconfig (func_name) :
 
   return endpoint_config
 
-def distantLoginRegister(payload, log_type='login', anonymous_token=None) :
+
+def distantLoginRegister(payload, func_name='user_login', anonymous_token=None) :
   """ 
   login given a payload
   sending request to the auth url / service 
@@ -119,12 +133,50 @@ def distantLoginRegister(payload, log_type='login', anonymous_token=None) :
   """
 
   print (". "*50)
-  log.debug("distantLoginRegister / payload : %s", payload )
-  log.debug("distantLoginRegister / log_type : %s", log_type )
+  log.debug("distantLoginRegister / payload : \n%s", pformat(payload) )
+  log.debug("distantLoginRegister / log_type : %s", func_name )
   log.debug("distantLoginRegister / anonymous_token : %s", anonymous_token )
 
   auth_url_root = getDistantAuthUrl()
   log.debug("distantLoginRegister / auth_url_root : %s", auth_url_root )
+
+  endpoint_config = getDistantEndpoinntconfig(func_name)
+  log.debug("distantLoginRegister / endpoint_config : \n%s", pformat(endpoint_config) )
+  
+  url_append = endpoint_config["url"]
+  post_args = endpoint_config["post_args"]
+  url_args = endpoint_config["url_args"]
+  method = endpoint_config["method"]
+
+  base_url = auth_url_root + url_append
+  log.debug("distantLoginRegister / base_url : %s", base_url )
+
+  headers = app.config["AUTH_URL_ROOT_HEADERS"]
+
+  ### TO DO : add token to requests
+  ### send request to service and read response
+  if method == 'GET' : 
+    response = requests.get(base_url)
+
+  elif method == 'DELETE' : 
+    response = requests.delete(base_url)
+
+  elif method == 'POST' : 
+    payload_json = json.dumps(payload)
+    log.debug("distantLoginRegister / payload_json : %s", payload_json )
+    response = requests.post(base_url, data=payload_json, headers=headers)
+
+  elif method == 'PUT' : 
+    response = requests.put(base_url, data=payload)
+
+  else :
+    return 'ERROR'
+
+  log.debug("distantLoginRegister / response.status_code : %s", response.status_code )
+  response_json = response.json()
+  log.debug("distantLoginRegister / response_json : \n%s", pformat(response_json) )
+
+  return response_json
 
 
 def checkJWT(token, token_type, return_resp=False):

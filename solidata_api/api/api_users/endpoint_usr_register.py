@@ -93,7 +93,7 @@ class Register(Resource):
     ### - - - - - - - - - ###
     else : 
       log.debug("app.config['AUTH_MODE'] : %s", app.config['AUTH_MODE'] )
-      distantLoginRegister(ns.payload, log_type='register', anonymous_token=raw_jwt)
+      distantLoginRegister(ns.payload, func_name='register_user', anonymous_token=raw_jwt)
 
 
 

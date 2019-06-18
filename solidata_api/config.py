@@ -194,6 +194,8 @@ class BaseConfig(object):
     AUTH_URL_ROOT_DISTANT_PROD = os.getenv("AUTH_URL_ROOT_DISTANT_PROD")
     AUTH_URL_ROOT_DISTANT_PREPOD = os.getenv("AUTH_URL_ROOT_DISTANT_PREPOD")
 
+    AUTH_URL_ROOT_HEADERS = formatEnvVar('AUTH_URL_HEADERS', format_type='dict')
+
     AUTH_DISTANT_ENDPOINTS = {
       
       ### 

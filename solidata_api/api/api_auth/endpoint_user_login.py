@@ -147,131 +147,132 @@ class Login(Resource):
     if app.config['AUTH_MODE'] == 'internal' :
       log.debug("app.config['AUTH_MODE'] : %s", app.config['AUTH_MODE'] )
 
+      ### retrieve current user identity from refresh token
+      claims = get_jwt_claims() 
+      log.debug("claims : \n %s", pformat(claims) )
+      
+
+      ### TO DO = add a ghost field to filter out spams and robots
+
+
+      ### retrieve infos from form
+      if app.config["RSA_MODE"] == "yes" : 
+        ### DECYPHERING THE STRINGS FROM RSA JSENCRYPT IN FRONT !!!!!!
+        payload_email_encrypted = ns.payload["email_encrypt"]
+        log.debug("payload_email_encrypted : \n%s", payload_email_encrypted )
+        payload_email = email_decoded = RSAdecrypt(payload_email_encrypted)
+        log.debug("email_decoded : %s", email_decoded )
+        ### get hashed password from pwd_encrypt encoded with salt_key / public_key
+        payload_pwd_encrypted = ns.payload["pwd_encrypt"]
+        log.debug("payload_pwd_encrypted : \n%s", payload_pwd_encrypted )
+        payload_pwd = password_decoded = RSAdecrypt(payload_pwd_encrypted)
+        log.debug("password_decoded : %s", password_decoded )
+      else : 
+        payload_email = ns.payload["email"]
+        log.debug("payload_email : \n%s", payload_email )
+        payload_pwd = ns.payload["pwd"]
+        log.debug("payload_pwd : \n%s", payload_pwd )
+      
+
+      ### retrieve user from db
+      user = mongo_users.find_one( {"infos.email" : payload_email } ) #, {"_id": 0 })
+      log.debug("user.infos : \n %s", pformat(user['infos'])) 
+      log.debug("user.auth : \n %s", pformat(user['auth'])) 
+
+      if user == None : 
+
+        log.warning("no user found for - payload_email :%s", payload_email )
+        log.warning("no user found for - payload_pwd :%s", payload_pwd )
+
+        error_message = "no such user in db"
+        return {  
+              "msg" : "incorrect login / {}".format(error_message) 
+            }, 401
+
+      if user : 
+        
+        ### check password
+        pwd = user["auth"]["pwd"]
+
+        if check_password_hash(pwd, payload_pwd) :
+      
+          ### marshal user's info 
+          # user_light = marshal( user , model_user_access)
+          user_light = marshal( user, model_user_login_out)
+          # user_light["_id"] = str(user["_id"])
+          log.debug("user_light : \n %s", pformat(user_light) )
+
+          ### Use create_access_token() to create user's new access token 
+          log.debug("... access_token")
+          new_access_token = create_access_token(identity=user_light, fresh=False)
+
+          ### create a new refresh_token when logged
+          payload_renew_refr_token = ns.payload.get("renew_refresh_token", app.config["JWT_RENEW_REFRESH_TOKEN_AT_LOGIN"] )
+          log.debug("payload_renew_refr_token : %s", payload_renew_refr_token )
+          if payload_renew_refr_token and user["auth"]["conf_usr"] == True :
+            log.debug("... refresh_token : create a new one...")
+            log.debug("... refresh_token")
+            expires       = app.config["JWT_REFRESH_TOKEN_EXPIRES"] 
+            refresh_token = create_refresh_token( identity=user_light, expires_delta=expires )
+            user["auth"]["refr_tok"] = refresh_token
+          
+          ### retrieve existing refresh_token from db
+          else :
+            log.debug("... refresh_token : get existing one...")
+            refresh_token = user["auth"]["refr_tok"]  
+
+          ### store tokens in dict
+          tokens = {
+            'access_token'  : new_access_token,
+            'refresh_token' : refresh_token,
+          }
+          if app.config["RSA_MODE"]=="yes" : 
+            salt_token = public_key_str #.decode("utf-8")
+            log.debug("salt_token : \n %s", salt_token )
+            tokens["salt_token"] = salt_token
+
+          print()
+          log.debug("user_light['_id']  : %s", user_light["_id"] )
+          log.debug("user_light         : \n%s", user_light )
+          log.debug("new_access_token   : \n%s", new_access_token )
+          log.debug("refresh_token      : \n%s", refresh_token )
+          print()
+
+          ### update user log in db
+          # user = create_modif_log(doc=user, action="login")
+          user["log"]["login_count"] += 1
+          mongo_users.save(user)
+
+          return {
+            "msg" : "user '{}' is logged".format(payload_email),
+
+            # "is_user_confirmed" : user["auth"]["conf_usr"],
+            # "_id"          : str(user["_id"]),
+            # "infos"        : user["infos"],
+            # "profile"      : user["profile"],
+            
+            "data"   : user_light,
+            "tokens" : tokens
+
+          }, 200
+
+        else : 
+          error_message = "wrong password"
+          return { 
+            "msg" : "incorrect login / {}".format(error_message) 
+          }, 401
 
 
     ### DISTANT AUTH MODE ###
     ### - - - - - - - - - ###
     else : 
       log.debug("app.config['AUTH_MODE'] : %s", app.config['AUTH_MODE'] )
-      distantLoginRegister(ns.payload, log_type='login', anonymous_token=raw_jwt)
+      response = distantLoginRegister( ns.payload, func_name='login_user', anonymous_token=raw_jwt )
+      return response
 
 
 
 
-    ### retrieve current user identity from refresh token
-    claims = get_jwt_claims() 
-    log.debug("claims : \n %s", pformat(claims) )
-    
-
-    ### TO DO = add a ghost field to filter out spams and robots
-
-
-    ### retrieve infos from form
-    if app.config["RSA_MODE"] == "yes" : 
-      ### DECYPHERING THE STRINGS FROM RSA JSENCRYPT IN FRONT !!!!!!
-      payload_email_encrypted = ns.payload["email_encrypt"]
-      log.debug("payload_email_encrypted : \n%s", payload_email_encrypted )
-      payload_email = email_decoded = RSAdecrypt(payload_email_encrypted)
-      log.debug("email_decoded : %s", email_decoded )
-      ### get hashed password from pwd_encrypt encoded with salt_key / public_key
-      payload_pwd_encrypted = ns.payload["pwd_encrypt"]
-      log.debug("payload_pwd_encrypted : \n%s", payload_pwd_encrypted )
-      payload_pwd = password_decoded = RSAdecrypt(payload_pwd_encrypted)
-      log.debug("password_decoded : %s", password_decoded )
-    else : 
-      payload_email = ns.payload["email"]
-      log.debug("payload_email : \n%s", payload_email )
-      payload_pwd = ns.payload["pwd"]
-      log.debug("payload_pwd : \n%s", payload_pwd )
-    
-
-    ### retrieve user from db
-    user = mongo_users.find_one( {"infos.email" : payload_email } ) #, {"_id": 0 })
-    log.debug("user.infos : \n %s", pformat(user['infos'])) 
-    log.debug("user.auth : \n %s", pformat(user['auth'])) 
-
-    if user == None : 
-
-      log.warning("no user found for - payload_email :%s", payload_email )
-      log.warning("no user found for - payload_pwd :%s", payload_pwd )
-
-      error_message = "no such user in db"
-      return {  
-            "msg" : "incorrect login / {}".format(error_message) 
-          }, 401
-
-    if user : 
-      
-      ### check password
-      pwd = user["auth"]["pwd"]
-
-      if check_password_hash(pwd, payload_pwd) :
-    
-        ### marshal user's info 
-        # user_light = marshal( user , model_user_access)
-        user_light = marshal( user, model_user_login_out)
-        # user_light["_id"] = str(user["_id"])
-        log.debug("user_light : \n %s", pformat(user_light) )
-
-        ### Use create_access_token() to create user's new access token 
-        log.debug("... access_token")
-        new_access_token = create_access_token(identity=user_light, fresh=False)
-
-        ### create a new refresh_token when logged
-        payload_renew_refr_token = ns.payload.get("renew_refresh_token", app.config["JWT_RENEW_REFRESH_TOKEN_AT_LOGIN"] )
-        log.debug("payload_renew_refr_token : %s", payload_renew_refr_token )
-        if payload_renew_refr_token and user["auth"]["conf_usr"] == True :
-          log.debug("... refresh_token : create a new one...")
-          log.debug("... refresh_token")
-          expires       = app.config["JWT_REFRESH_TOKEN_EXPIRES"] 
-          refresh_token = create_refresh_token( identity=user_light, expires_delta=expires )
-          user["auth"]["refr_tok"] = refresh_token
-        
-        ### retrieve existing refresh_token from db
-        else :
-          log.debug("... refresh_token : get existing one...")
-          refresh_token = user["auth"]["refr_tok"]  
-
-        ### store tokens in dict
-        tokens = {
-          'access_token'  : new_access_token,
-          'refresh_token' : refresh_token,
-        }
-        if app.config["RSA_MODE"]=="yes" : 
-          salt_token = public_key_str #.decode("utf-8")
-          log.debug("salt_token : \n %s", salt_token )
-          tokens["salt_token"] = salt_token
-
-        print()
-        log.debug("user_light['_id']  : %s", user_light["_id"] )
-        log.debug("user_light         : \n%s", user_light )
-        log.debug("new_access_token   : \n%s", new_access_token )
-        log.debug("refresh_token      : \n%s", refresh_token )
-        print()
-
-        ### update user log in db
-        # user = create_modif_log(doc=user, action="login")
-        user["log"]["login_count"] += 1
-        mongo_users.save(user)
-
-        return {
-          "msg" : "user '{}' is logged".format(payload_email),
-
-          # "is_user_confirmed" : user["auth"]["conf_usr"],
-          # "_id"          : str(user["_id"]),
-          # "infos"        : user["infos"],
-          # "profile"      : user["profile"],
-          
-          "data"   : user_light,
-          "tokens" : tokens
-
-        }, 200
-
-      else : 
-        error_message = "wrong password"
-        return { 
-          "msg" : "incorrect login / {}".format(error_message) 
-        }, 401
 
 
 
