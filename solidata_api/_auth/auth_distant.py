@@ -1,6 +1,5 @@
 """
 auth_distant.py  
-- creates a token_required decorator
 """
 
 from log_config import log, pprint, pformat
@@ -12,81 +11,29 @@ import json
 from functools import wraps, partial, update_wrapper
 from flask import request, current_app as app, jsonify
 
+from . import functions_protocols
 
-functions_protocols = {
-  "login_user" : {
-    "auth_func" : "",
-    "endpoint_config" : "user_login",
-    "endpoint_code" : "login",
-  },
-  "register_user" : {
-    "auth_func" : "",
-    "endpoint_config" : "user_edit",
-    "endpoint_code" : "register",
-  },
-  ### TO DO 
-  "add_claims_to_access_token" : {
-    "auth_func" : "",
-    "endpoint_config" : "users_list",
-    "endpoint_code" : "get_one",
-  },
-  "user_identity_lookup" : {
-    "auth_func" : "",
-    "endpoint_config" : "users_list",
-    "endpoint_code" : "get_one",
-  },
-  "my_expired_token_callback" : {
-    "auth_func" : "",
-    "endpoint_config" : "users_list",
-    "endpoint_code" : "get_one",
-  },
-  "anonymous_required" : {
-    "auth_func" : "",
-    "endpoint_config" : "users_list",
-    "endpoint_code" : "get_one",
-  },
-  "anonymous_or_guest_required" : {
-    "auth_func" : "",
-    "endpoint_config" : "users_list",
-    "endpoint_code" : "get_one",
-  },
-  "guest_required" : {
-    "auth_func" : "",
-    "endpoint_config" : "users_list",
-    "endpoint_code" : "get_one",
-  },
-  "admin_required" : {
-    "auth_func" : "",
-    "endpoint_config" : "users_list",
-    "endpoint_code" : "get_one",
-  },
-  "staff_required" : {
-    "auth_func" : "",
-    "endpoint_config" : "users_list",
-    "endpoint_code" : "get_one",
-  },
-  "renew_pwd_required" : {
-    "auth_func" : "",
-    "endpoint_config" : "users_list",
-    "endpoint_code" : "get_one",
-  },
-  "reset_pwd_required" : {
-    "auth_func" : "",
-    "endpoint_config" : "users_list",
-    "endpoint_code" : "get_one",
-  },
-  "confirm_email_required" : {
-    "auth_func" : "",
-    "endpoint_config" : "users_list",
-    "endpoint_code" : "get_one",
-  },
-  "current_user_required" : {
-    "auth_func" : "",
-    "endpoint_config" : "users_list",
-    "endpoint_code" : "get_one",
-  },
-}
 
+
+
+
+def getTokenFromRequest(api_request) : 
+  """ 
+  retrieve token sent with request 
+  """ 
+
+  # log.debug("getTokenFromRequest/ api_request : \n%s", pformat(api_request.__dict__) )
+
+  token_header_location = app.config["JWT_HEADER_NAME"]
+  token_from_headers = api_request.headers.get(token_header_location, None)
+
+  token_query_string = app.config["JWT_QUERY_STRING_NAME"]
+  token_from_query = api_request.args.get(token_query_string, None)
+
+  if token_from_headers or token_from_query : 
+    return token_from_headers if token_from_headers else token_from_query
+  else : 
+    return None
 
 def getDistantAuthUrl():
 
@@ -109,7 +56,7 @@ def getDistantAuthUrl():
   else :
     return False
 
-def getDistantEndpoinntconfig (func_name) : 
+def getDistantEndpointconfig (func_name) : 
   """ 
   """ 
   # print (". "*50)
@@ -124,7 +71,7 @@ def getDistantEndpoinntconfig (func_name) :
   return endpoint_config
 
 
-def distantLoginRegister(payload, func_name='user_login', anonymous_token=None) :
+def distantAuthCall ( request=None, query={}, payload=None, func_name='user_login') :
   """ 
   login given a payload
   sending request to the auth url / service 
@@ -133,71 +80,121 @@ def distantLoginRegister(payload, func_name='user_login', anonymous_token=None) 
   """
 
   print (". "*50)
-  log.debug("distantLoginRegister / payload : \n%s", pformat(payload) )
-  log.debug("distantLoginRegister / log_type : %s", func_name )
-  log.debug("distantLoginRegister / anonymous_token : %s", anonymous_token )
+  log.debug("distantAuthCall/ payload : \n%s", pformat(payload) )
+  log.debug("distantAuthCall/ log_type : %s", func_name )
 
+  ### retrieve distant auth url root
   auth_url_root = getDistantAuthUrl()
-  log.debug("distantLoginRegister / auth_url_root : %s", auth_url_root )
+  log.debug("distantAuthCall/ auth_url_root : %s", auth_url_root )
 
-  endpoint_config = getDistantEndpoinntconfig(func_name)
-  log.debug("distantLoginRegister / endpoint_config : \n%s", pformat(endpoint_config) )
+  ### retrieve distant auth endpoint config
+  endpoint_config = getDistantEndpointconfig(func_name)
+  log.debug("distantAuthCall/ endpoint_config : \n%s", pformat(endpoint_config) )
   
   url_append = endpoint_config["url"]
   post_args = endpoint_config["post_args"]
   url_args = endpoint_config["url_args"]
   method = endpoint_config["method"]
 
-  base_url = auth_url_root + url_append
-  log.debug("distantLoginRegister / base_url : %s", base_url )
+  ### build url base for specific auth
+  base_url = auth_url_root + url_append 
+  log.debug("distantAuthCall/ base_url : %s", base_url )
 
-  headers = app.config["AUTH_URL_ROOT_HEADERS"]
+  
 
-  ### TO DO : add token to requests
+  ### append distant auth request headers
+  headers = app.config["AUTH_URL_HEADERS"]
+  if payload :
+    headers = app.config["AUTH_URL_HEADERS_PAYLOAD"]
+
+  ### TO DO : add token to requests in headers or query_string
+  token = getTokenFromRequest(request)
+  log.debug("token : %s", token )
+
+  token_query_string = ""
+  if token :
+    token_locations = app.config["AUTH_URL_TOKEN_LOCATION"]
+    
+    if "query_string" in token_locations and  "headers" not in token_locations : 
+      token_query_string_name = app.config["AUTH_URL_TOKEN_QUERY_STRING_NAME"]
+      token_query_string = "{}={}".format(token_query_string_name,token)
+
+    if "headers" in token_locations : 
+      token_header_name = app.config["AUTH_URL_TOKEN_HEADER_NAME"]
+      token_header_type = app.config["AUTH_URL_TOKEN_HEADER_TYPE"]
+      headers[token_header_name] = token
+
+  log.debug("distantAuthCall / headers : \n%s", pformat(headers) )
+
+
+
+  ### TO DO : append url_args
+  url_args_string = ""
+  if url_args :
+    url_args_string = "?"
+    for arg_k, arg_v in url_args.items() : 
+      url_args_string += "&{}={}".format( arg_k, query[arg_v]  )
+  query_url = base_url + url_args_string + token_query_string
+
+
+
   ### send request to service and read response
   if method == 'GET' : 
-    response = requests.get(base_url)
+    response = requests.get(query_url, headers=headers)
 
   elif method == 'DELETE' : 
-    response = requests.delete(base_url)
+    response = requests.delete(query_url, headers=headers)
 
-  elif method == 'POST' : 
-    payload_json = json.dumps(payload)
-    log.debug("distantLoginRegister / payload_json : %s", payload_json )
-    response = requests.post(base_url, data=payload_json, headers=headers)
+  elif method in ['POST', 'PUT'] :
 
-  elif method == 'PUT' : 
-    response = requests.put(base_url, data=payload)
+    ### TO DO : rebuild payload given 
+    # remap payload given endpoint connfig 
+    payload_remapped = {
+      post_args[k] : v for k,v in payload.items() if k in post_args.keys()
+    }
+    log.debug("distantAuthCall / payload_remapped : \n%s", pformat(payload_remapped) )
 
-  else :
-    return 'ERROR'
+    # then payload as json
+    # payload_json = json.dumps(payload)
+    payload_json = json.dumps(payload_remapped)
+    log.debug("distantAuthCall / payload_json : %s", payload_json )
 
-  log.debug("distantLoginRegister / response.status_code : %s", response.status_code )
+    if method == 'POST' : 
+      response = requests.post(query_url, data=payload_json, headers=headers)
+
+    elif method == 'PUT' : 
+      response = requests.put(query_url, data=payload, headers=headers)
+
+
+  log.debug("distantAuthCall / response.status_code : %s", response.status_code )
   response_json = response.json()
-  log.debug("distantLoginRegister / response_json : \n%s", pformat(response_json) )
+  log.debug("distantAuthCall / response_json : \n%s", pformat(response_json) )
 
   return response_json
 
 
-def checkJWT(token, token_type, return_resp=False):
-  """ 
-  authenticate a token 
-  sending request to the auth url / service 
-  specified in config
-  ... doing so to avoid middle man risk when editing
-  """
-
-  print (". "*50)
-
-  auth_url_root = getDistantAuthUrl()
-  log.debug("checkJWT / auth_url_root : %s", auth_url_root )
 
 
 
+# def checkJWT(token, token_type, return_resp=False):
+#   """ 
+#   authenticate a token 
+#   sending request to the auth url / service 
+#   specified in config
+#   ... doing so to avoid middle man risk when editing
+#   """
+
+#   print (". "*50)
+
+#   auth_url_root = getDistantAuthUrl()
+#   log.debug("checkJWT / auth_url_root : %s", auth_url_root )
 
 
 
-def distant_auth (func_name=None, as_decorator=True) : 
+
+
+
+def distant_auth (func_name=None, as_decorator=True, request=None) : 
   """
   """
   log.debug("-@- distant_auth ...")
@@ -219,7 +216,7 @@ def distant_auth (func_name=None, as_decorator=True) :
       print(".......")
 
       ### DO STUFF FOR DISTANT AUTH
-      endpoint_config = getDistantEndpoinntconfig(func_name)
+      endpoint_config = getDistantEndpointconfig(func_name)
       log.debug("-@- distant_auth ... inside ... endpoint_config : \n%s", pformat(endpoint_config))
 
 

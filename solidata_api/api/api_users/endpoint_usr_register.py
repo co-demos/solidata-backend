@@ -75,9 +75,6 @@ class Register(Resource):
     log.debug( "ROUTE class : %s", self.__class__.__name__ )
     log.debug ("payload : \n{}".format(pformat(ns.payload)))
 
-    ### get raw JWT
-    raw_jwt = get_raw_jwt()
-    log.debug("raw_jwt : \n %s", pformat(raw_jwt) )
 
 
 
@@ -87,18 +84,22 @@ class Register(Resource):
     if app.config['AUTH_MODE'] == 'internal' :
       log.debug("app.config['AUTH_MODE'] : %s", app.config['AUTH_MODE'] )
 
+      ### get raw JWT
+      raw_jwt = get_raw_jwt()
+      log.debug("raw_jwt : \n %s", pformat(raw_jwt) )
 
 
     ### DISTANT AUTH MODE ###
     ### - - - - - - - - - ###
     else : 
       log.debug("app.config['AUTH_MODE'] : %s", app.config['AUTH_MODE'] )
-      distantLoginRegister(ns.payload, func_name='register_user', anonymous_token=raw_jwt)
+
+      response = distantAuthCall( request=request, payload=ns.payload, func_name='register_user' )
+      return response 
 
 
 
-
-
+    ### TO DO : movee up inside register as AUTH_MODE != internal
     ### retrieve infos from form 
     if app.config["RSA_MODE"] == "yes" : 
       payload_email_encrypted = ns.payload["email_encrypt"]

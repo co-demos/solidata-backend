@@ -30,6 +30,7 @@ model_user_login_out  = model_user.model_login_out
 if app.config["ANOJWT_MODE"] == "yes" : 
 
   # @cross_origin()
+  @ns.doc(security='apikey')
   @ns.route('/anonymous/')
   class AnonymousLogin(Resource):
 
@@ -55,56 +56,50 @@ if app.config["ANOJWT_MODE"] == "yes" :
       if app.config['AUTH_MODE'] == 'internal' :
         log.debug("app.config['AUTH_MODE'] : %s", app.config['AUTH_MODE'] )
 
+        ### create a fake user 
+        anon_user_class = AnonymousUser()
+        anonymous_user  = anon_user_class.__dict__
 
+        ### create corresponding access token
+        anonymous_access_token = create_access_token(identity=anonymous_user) #, expires_delta=expires)
+
+        ### create a random string for later login / register encryption in frontend
+        anonymous_access_token_decoded  = decode_token(anonymous_access_token)
+        log.debug("anonymous_access_token_decoded : \n %s", pformat(anonymous_access_token_decoded) )
+        # salt_token  = anonymous_access_token_decoded['jti']
+        # salt_token  = salt_token.replace("-", "")
+        salt_token = public_key_str #.decode("utf-8")
+
+        ### create corresponding refresh token
+        expires                 = app.config["JWT_ANONYMOUS_REFRESH_TOKEN_EXPIRES"]
+        anonymous_refresh_token = create_refresh_token(identity=anonymous_user, expires_delta=expires)
+
+        log.debug("anonymous_access_token   : \n %s", anonymous_access_token )
+        log.debug("anonymous_refresh_token   : \n %s", anonymous_refresh_token )
+        log.debug("salt_token               : \n %s", salt_token )
+
+        ### store tokens in dict
+        tokens = {
+          'access_token'  : anonymous_access_token,
+          'refresh_token' : anonymous_refresh_token,
+          # 'salt_token'     : salt_token,
+        }
+        if app.config["RSA_MODE"]=="yes" : 
+          # salt_token     = salt_token #.decode("utf-8")
+          log.debug("salt_token : \n %s", salt_token )
+          tokens["salt_token"] = salt_token
+
+        return {  
+          "msg"     : "anonymous user - an anonymous access_token has been created + a valid refresh_token for {} hours".format(expires) , 
+          "tokens"  :  tokens
+        }, 200
 
       ### DISTANT AUTH MODE ###
       ### - - - - - - - - - ###
       else : 
         log.debug("app.config['AUTH_MODE'] : %s", app.config['AUTH_MODE'] )
-
-
-      ### create a fake user 
-      anon_user_class = AnonymousUser()
-      anonymous_user   = anon_user_class.__dict__
-
-      ### create corresponding access token
-      anonymous_access_token = create_access_token(identity=anonymous_user) #, expires_delta=expires)
-
-      ### create a random string for later login / register encryption in frontend
-      anonymous_access_token_decoded  = decode_token(anonymous_access_token)
-      log.debug("anonymous_access_token_decoded : \n %s", pformat(anonymous_access_token_decoded) )
-      # salt_token  = anonymous_access_token_decoded['jti']
-      # salt_token  = salt_token.replace("-", "")
-      salt_token     = public_key_str #.decode("utf-8")
-
-      ### create corresponding refresh token
-      expires                   = app.config["JWT_ANONYMOUS_REFRESH_TOKEN_EXPIRES"]
-      anonymous_refresh_token    = create_refresh_token(identity=anonymous_user, expires_delta=expires)
-
-      log.debug("anonymous_access_token   : \n %s", anonymous_access_token )
-      log.debug("anonymous_refresh_token   : \n %s", anonymous_refresh_token )
-      log.debug("salt_token               : \n %s", salt_token )
-
-      ### store tokens in dict
-      # tokens = {
-      #       'access_token'   : anonymous_access_token,
-      #       'refresh_token' : anonymous_refresh_token,
-      #       'salt_token'   : salt_token,
-      #     }
-      tokens = {
-        'access_token'   : anonymous_access_token,
-        'refresh_token' : anonymous_refresh_token,
-        # 'salt_token'     : salt_token,
-      }
-      if app.config["RSA_MODE"]=="yes" : 
-        # salt_token     = salt_token #.decode("utf-8")
-        log.debug("salt_token : \n %s", salt_token )
-        tokens["salt_token"] = salt_token
-
-      return {  
-        "msg"     : "anonymous user - an anonymous access_token has been created + a valid refresh_token for {} hours".format(expires) , 
-        "tokens"  :  tokens
-      }, 200
+        response = distantAuthCall( request=request, func_name='login_anonymous' )
+        return response
 
 
 
@@ -134,12 +129,6 @@ class Login(Resource):
     log.debug( "ROUTE class : %s", self.__class__.__name__ )
     log.debug ("payload : \n{}".format(pformat(ns.payload)))
 
-    ### get raw JWT
-    raw_jwt     = get_raw_jwt()
-    log.debug("raw_jwt : \n %s", pformat(raw_jwt) )
-    # salt_key  = raw_jwt['jti']
-    # salt_key  = salt_key.replace("-", "")
-    # log.debug("salt_key : \n %s", salt_key )
 
 
     ### INTERNNAL AUTH MODE ###
@@ -147,13 +136,19 @@ class Login(Resource):
     if app.config['AUTH_MODE'] == 'internal' :
       log.debug("app.config['AUTH_MODE'] : %s", app.config['AUTH_MODE'] )
 
+      ### get raw JWT (only works for internal auth_mode , not local / distant_prod / distant_prreprod )
+      ### because is decrypted with solidata-backeend JWT_SECRET_KEY, not distant
+      raw_jwt     = get_raw_jwt()
+      log.debug("raw_jwt : \n %s", pformat(raw_jwt) )
+
       ### retrieve current user identity from refresh token
       claims = get_jwt_claims() 
       log.debug("claims : \n %s", pformat(claims) )
       
 
       ### TO DO = add a ghost field to filter out spams and robots
-
+      if app.config["RSA_MODE"] == "yes" : 
+        pass
 
       ### retrieve infos from form
       if app.config["RSA_MODE"] == "yes" : 
@@ -186,8 +181,8 @@ class Login(Resource):
 
         error_message = "no such user in db"
         return {  
-              "msg" : "incorrect login / {}".format(error_message) 
-            }, 401
+          "msg" : "incorrect login / {}".format(error_message) 
+        }, 401
 
       if user : 
         
@@ -267,7 +262,8 @@ class Login(Resource):
     ### - - - - - - - - - ###
     else : 
       log.debug("app.config['AUTH_MODE'] : %s", app.config['AUTH_MODE'] )
-      response = distantLoginRegister( ns.payload, func_name='login_user', anonymous_token=raw_jwt )
+
+      response = distantAuthCall( request=request, payload=ns.payload, func_name='login_user' )
       return response
 
 

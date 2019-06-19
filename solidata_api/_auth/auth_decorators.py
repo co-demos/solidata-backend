@@ -20,7 +20,10 @@ from flask_jwt_extended import (
 )
 
 ### import ext JWT check 
-from .auth_distant import distant_auth # checkJWT
+from .auth_distant import distantAuthCall, distant_auth # checkJWT
+
+
+is_distant_auth = app.config['AUTH_MODE'] != 'internal'
 
 
 ### + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + ###
@@ -181,13 +184,22 @@ def anonymous_required(func):
     ### ignore JWT / anonymous required if ANOJWT_MODE is disabled
     if app.config["ANOJWT_MODE"] == "no" : 
       return func(*args, **kwargs)
-
+    
+    ### otherwise verify jwt
     else :
-      verify_jwt_in_request()
-      claims = get_jwt_claims()
-      log.debug("claims : \n %s", pformat(claims) )
-      
-      log.debug("kwargs : \n %s", pformat(kwargs) )
+
+      if is_distant_auth : 
+        log.debug("-@- anonymous checker / is_distant_auth : %s", is_distant_auth)
+        response = distantAuthCall( request=request, func_name="anonymous_required" )
+        log.debug("-@- anonymous checker / response : \n%s", pformat(response) )
+        claims = response["data"]
+
+      else : 
+        verify_jwt_in_request()
+        claims = get_jwt_claims()
+        log.debug("claims : \n %s", pformat(claims) )
+        
+        log.debug("kwargs : \n %s", pformat(kwargs) )
 
       if claims["auth"]["role"] != 'anonymous' :
         return { "msg" : "Anonymous users only !!! " }, 403

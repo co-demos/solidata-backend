@@ -14,6 +14,7 @@ log.debug(">>> _auth ... loading auth functions and decorators")
 
 from .authorizations import authorizations
 
+from .auth_distant_protocols import functions_protocols
 from .auth_distant import *
 
 from .auth_decorators import ( 

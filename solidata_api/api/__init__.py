@@ -17,7 +17,7 @@ import 	pandas as pd
 import 	numpy as np
 import 	requests
 
-from 	flask 				import Blueprint, current_app as app, url_for, request, render_template
+from 	flask import Blueprint, current_app as app, url_for, request, render_template
 
 from 	werkzeug.security 	import 	generate_password_hash, check_password_hash
 

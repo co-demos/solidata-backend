@@ -15,47 +15,43 @@ def formatEnvVar(var_name, format_type='boolean', separator=',', dict_separator=
   env_var = os.getenv(var_name)
   print("formatEnvVar / env_var : {} / var_name : {} ".format(env_var, var_name) )
 
-  if format_type == 'boolean' :
+  # if format_type in ['boolean', 'string'] :
+  if format_type in ['boolean'] :
     if env_var in [ 'y', 'Y','yes', 'Yes', 'YES', 'true', 'True', 'TRUE', '1'] : 
       return True
     else :
       return False
 
+  print("...")  
+
   # trransform as none if it is the case
   if env_var in [ 'n', 'N', 'none', 'None', 'NONE', 'nan', 'Nan', 'NAN', 'null', 'Null','NULL', 'undefined'] : 
     env_var = None 
+    if format_type == 'string' : 
+      env_var = ""
+    return env_var
 
-  elif format_type == 'integer' : 
-    if env_var : 
-      return int(env_var)
+  elif env_var and format_type == 'integer' : 
+    return int(env_var)
 
-  elif format_type == 'float' : 
-    if env_var : 
-      return float(env_var)
+  elif env_var and format_type == 'float' : 
+    return float(env_var)
 
-  elif format_type == 'list' : 
-    if env_var : 
-      return env_var.split(separator)
+  elif env_var and format_type == 'list' : 
+    return env_var.split(separator)
 
-  elif format_type == 'dict' : 
+  elif env_var and format_type == 'dict' : 
 
-    if env_var : 
-      temp_list = env_var.split(separator)
-      # print("formatEnvVar / temp_list : ", temp_list)
-      env_dict = {}
-      if len(temp_list) > 0 : 
-        for tuple_dict in temp_list : 
-          i = tuple_dict.split(dict_separator)
-          env_dict[ i[0] ] = i[1] 
-      return env_dict
-
-    else : 
-      return env_var
+    temp_list = env_var.split(separator)
+    # print("formatEnvVar / temp_list : ", temp_list)
+    env_dict = {}
+    if len(temp_list) > 0 : 
+      for tuple_dict in temp_list : 
+        i = tuple_dict.split(dict_separator)
+        env_dict[ i[0] ] = i[1] 
+    return env_dict
 
   else : 
-    # if env_var in [ 'n', 'N', 'none', 'None', 'NONE', 'nan', 'Nan', 'NAN', 'null', 'Null','NULL', 'undefined', '0'] : 
-    #   return None
-    # else : 
     return env_var
 
 ### + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + ###
@@ -194,7 +190,13 @@ class BaseConfig(object):
     AUTH_URL_ROOT_DISTANT_PROD = os.getenv("AUTH_URL_ROOT_DISTANT_PROD")
     AUTH_URL_ROOT_DISTANT_PREPOD = os.getenv("AUTH_URL_ROOT_DISTANT_PREPOD")
 
-    AUTH_URL_ROOT_HEADERS = formatEnvVar('AUTH_URL_HEADERS', format_type='dict')
+    AUTH_URL_HEADERS = formatEnvVar('AUTH_URL_HEADERS', format_type='dict')
+    AUTH_URL_HEADERS_PAYLOAD = formatEnvVar('AUTH_URL_HEADERS_PAYLOAD', format_type='dict')
+    AUTH_URL_TOKEN_LOCATION = formatEnvVar('AUTH_URL_TOKEN_LOCATION', format_type='list')
+    AUTH_URL_TOKEN_HEADER_NAME = os.getenv('AUTH_URL_TOKEN_HEADER_NAME')
+    AUTH_URL_TOKEN_HEADER_TYPE = formatEnvVar('AUTH_URL_TOKEN_HEADER_TYPE', format_type='string')
+
+    AUTH_URL_TOKEN_QUERY_STRING_NAME = os.getenv('AUTH_URL_TOKEN_QUERY_STRING_NAME', 'token')
 
     AUTH_DISTANT_ENDPOINTS = {
       
@@ -293,6 +295,13 @@ class BaseConfig(object):
           "url_append" :  formatEnvVar('AUTH_DISTANT_USER_TOK_NEW_REFRESH_URL_APPEND', format_type='string'),
           "post_args" :   formatEnvVar('AUTH_DISTANT_USER_TOK_NEW_REFRESH_POST_ARGS', format_type='dict'),
         },
+        "token_claims" : {
+          "url" :         os.getenv("AUTH_DISTANT_USER_TOK_CLAIMS"),
+          "method" :      os.getenv("AUTH_DISTANT_USER_TOK_CLAIMS_METHOD"),
+          "url_args" :    formatEnvVar('AUTH_DISTANT_USER_TOK_CLAIMS_URL_ARGS', format_type='dict'),
+          "url_append" :  formatEnvVar('AUTH_DISTANT_USER_TOK_CLAIMS_POST_ARGS', format_type='string'),
+          "post_args" :   formatEnvVar('AUTH_DISTANT_USER_TOK_CLAIMS_URL_APPEND', format_type='dict'),
+        },
       },
       ###
       "auth_password" : {
@@ -334,16 +343,19 @@ class BaseConfig(object):
   SWAGGER_UI_REQUEST_DURATION = True
 
   """ APP SECRET KEY """
-  # SECRET_KEY = "app_very_secret_key"
   SECRET_KEY = os.getenv("SECRET_KEY") # "app_very_secret_key"
 
   """ SHARED JWT SECRET KEY : this key must be shared with openscraper and solidata """
-  # JWT_SECRET_KEY          = "a_key_shared_with_front_and_openscraper_and_solidata"
-  JWT_SECRET_KEY            = os.getenv("JWT_SECRET_KEY") # "a_key_youhouuuuuuu"
+  JWT_SECRET_KEY        = os.getenv("JWT_SECRET_KEY") # "a_key_youhouuuuuuu"
 
-  JWT_HEADER_NAME           = "Authorization" #"X-API-KEY"
-  JWT_TOKEN_LOCATION        = ["headers", "query_string"]
-  JWT_QUERY_STRING_NAME     = "token"
+  JWT_HEADER_NAME       = os.getenv("JWT_HEADER_NAME") # "Authorization" #"X-API-KEY"
+  JWT_TOKEN_LOCATION    = formatEnvVar("JWT_TOKEN_LOCATION", format_type="list") # ["headers", "query_string"]
+  JWT_QUERY_STRING_NAME = os.getenv("JWT_HEADER_NAME") # "token"
+
+  # beware not putting anything in JWT_HEADER_TYPE like 'Bearer', 
+  # otherwise @jwt_required will look for an Authorization : Bearer <JWT> / 
+  # not very comptatible with Flask-RestPlus authorization schemas described in _auth.authorizations.py
+  JWT_HEADER_TYPE = "" 
 
   JWT_ACCESS_TOKEN_EXPIRES  = timedelta(minutes=720) # minutes=15
 
@@ -360,10 +372,7 @@ class BaseConfig(object):
   JWT_RESET_PWD_ACCESS_TOKEN_EXPIRES_VAL  = formatEnvVar("JWT_RESET_PWD_ACCESS_TOKEN_EXPIRES", format_type='integer')
   JWT_RESET_PWD_ACCESS_TOKEN_EXPIRES      = timedelta(days=JWT_RESET_PWD_ACCESS_TOKEN_EXPIRES_VAL)  
 
-  # beware not putting anything in JWT_HEADER_TYPE like 'Bearer', 
-  # otherwise @jwt_required will look for an Authorization : Bearer <JWT> / 
-  # not very comptatible with Flask-RestPlus authorization schemas described in _auth.authorizations.py
-  JWT_HEADER_TYPE = "" 
+
 
   # JWT_RENEW_REFRESH_TOKEN_AT_LOGIN = True 
   JWT_RENEW_REFRESH_TOKEN_AT_LOGIN = formatEnvVar('JWT_RENEW_REFRESH_TOKEN_AT_LOGIN', format_type='boolean') # False 
