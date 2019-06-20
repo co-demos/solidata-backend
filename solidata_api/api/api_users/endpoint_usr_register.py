@@ -253,6 +253,7 @@ class Confirm_email(Resource):
   # /confirm?token=<REFRESH_TOKEN>
   @ns.doc('confirm_email')
   @confirm_email_required
+  @distant_auth(func_name="confirm_email_user", return_resp=True )
   def get(self):
     """
     URL to confirm email sent once registered or when change email

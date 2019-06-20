@@ -27,7 +27,7 @@ blueprint = Blueprint( 'api_auth', __name__, template_folder=app.config["TEMPLAT
 api = MyApi( blueprint,
   title	= "Solidata API : AUTH SERVER",
   version	= app.config["APP_VERSION"],
-  description	= "{} - auth_mode : {} / auth server / manages tokens".format(app.config["CODE_LINK"], app.config["AUTH_MODE"]),
+  description	= "{} - auth_mode : {} / manage tokens".format(app.config["CODE_LINK"], app.config["AUTH_MODE"]),
   doc	= '/documentation',
   default	= 'login',
   authorizations = auth_check,

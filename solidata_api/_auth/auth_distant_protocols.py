@@ -9,48 +9,110 @@ log.debug (">>> _auth ... loading auth_distant_protocols ...")
 
 functions_protocols = {
 
+  ### DONE
+  "token_claims" : {
+    "endpoint_config" : "auth_tokens",
+    "endpoint_code" : "token_claims",
+  },
+  # TESTS TO DO  
+  "confirm_access" : {
+    "endpoint_config" : "auth_tokens",
+    "endpoint_code" : "confirm_access",
+  },
+  "new_access_token" : {
+    "endpoint_config" : "auth_tokens",
+    "endpoint_code" : "new_access_token",
+  },
+  "fresh_access_token" : {
+    "endpoint_config" : "auth_tokens",
+    "endpoint_code" : "fresh_access_token",
+  },
+  "new_refresh_token" : {
+    "endpoint_config" : "auth_tokens",
+    "endpoint_code" : "new_refresh_token",
+  },
+
+
   ### DONE 
   "login_user" : {
     "endpoint_config" : "user_login",
     "endpoint_code" : "login",
   },
-
-  ### DONE 
   "login_anonymous" : {
     "endpoint_config" : "user_login",
     "endpoint_code" : "login_anonymous",
   },
+
 
   ### DONE 
   "register_user" : {
     "endpoint_config" : "user_edit",
     "endpoint_code" : "register",
   },
+  "confirm_email_user" : {
+    "endpoint_config" : "user_edit",
+    "endpoint_code" : "confirm_email",
+  },
+  "update_user" : {
+    "endpoint_config" : "user_edit",
+    "endpoint_code" : "user_update",
+  },
+  "delete_user" : {
+    "endpoint_config" : "user_edit",
+    "endpoint_code" : "user_delete",
+  },
 
-  ### TO DO 
-  "add_claims_to_access_token" : {
+  ### TESTS TO DO  
+  "password_forgotten" : {
+    "endpoint_config" : "auth_password",
+    "endpoint_code" : "pwd_forgot",
+  },
+  "password_reset_get" : {
+    "endpoint_config" : "auth_password",
+    "endpoint_code" : "pwd_reset_link",
+  },
+  "password_reset_post" : {
+    "endpoint_config" : "auth_password",
+    "endpoint_code" : "pwd_reset",
+  },
+
+
+  ### TESTS TO DO  
+  "users_get_one" : {
     "endpoint_config" : "users_list",
     "endpoint_code" : "get_one",
   },
-
-  ### TO DO 
-  "user_identity_lookup" : {
+  "users_get_list" : {
     "endpoint_config" : "users_list",
-    "endpoint_code" : "get_one",
+    "endpoint_code" : "users_get_list",
   },
 
-  ### TO DO 
-  "my_expired_token_callback" : {
-    "endpoint_config" : "users_list",
-    "endpoint_code" : "get_one",
-  },
 
-  ### WORKING ON IT
-  "token_claims" : {
-    "endpoint_config" : "auth_tokens",
-    "endpoint_code" : "token_claims",
-  },
-  
+
+
+
+
+
+  # ### TO DO 
+  # "add_claims_to_access_token" : {
+  #   "endpoint_config" : "users_list",
+  #   "endpoint_code" : "get_one",
+  # },
+
+  # ### TO DO 
+  # "user_identity_lookup" : {
+  #   "endpoint_config" : "users_list",
+  #   "endpoint_code" : "get_one",
+  # },
+
+  # ### TO DO 
+  # "my_expired_token_callback" : {
+  #   "endpoint_config" : "users_list",
+  #   "endpoint_code" : "get_one",
+  # },
+
+
+
   ### WORKING ON IT
   # "anonymous_required" : {
   #   "endpoint_config" : "auth_tokens",

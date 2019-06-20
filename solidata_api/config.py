@@ -200,7 +200,7 @@ class BaseConfig(object):
 
     AUTH_DISTANT_ENDPOINTS = {
       
-      ### 
+      ### LISTING USERS
       "users_list" : {
         "get_one" : {
           "url" :         os.getenv("AUTH_DISTANT_USER_GET_ONE"),
@@ -210,7 +210,7 @@ class BaseConfig(object):
           "post_args" :   formatEnvVar('AUTH_DISTANT_USER_GET_ONE_POST_ARGS', format_type='dict'),
           "resp_path" :   formatEnvVar('AUTH_DISTANT_USER_GET_ONE_RESP', format_type='dict'),
         },
-        "list"    : {
+        "get_list"    : {
           "url" :         os.getenv("AUTH_DISTANT_USER_GET_LIST"),
           "method" :      os.getenv("AUTH_DISTANT_USER_GET_LIST_METHOD"),
           "url_args" :    formatEnvVar('AUTH_DISTANT_USER_GET_LIST_URL_ARGS', format_type='dict'),
@@ -219,7 +219,8 @@ class BaseConfig(object):
           "resp_path" :   formatEnvVar('AUTH_DISTANT_USER_GET_LIST_RESP', format_type='dict'),
         },
       },
-      ###  
+
+      ### EDIT USER
       "user_edit" : {
         "register" : {
           "url" :         os.getenv("AUTH_DISTANT_USER_REGISTER"),
@@ -237,7 +238,7 @@ class BaseConfig(object):
           "post_args" :   formatEnvVar('AUTH_DISTANT_USER_CONF_EMAIL_POST_ARGS', format_type='dict'),
           "resp_path" :   formatEnvVar('AUTH_DISTANT_USER_CONF_EMAIL_RESP', format_type='dict'),
         },
-        "user_edit" : {
+        "user_update" : {
           "url" :         os.getenv("AUTH_DISTANT_USER_EDIT"),
           "method" :      os.getenv("AUTH_DISTANT_USER_EDIT_METHOD"),
           "url_args" :    formatEnvVar('AUTH_DISTANT_USER_EDIT_URL_ARGS', format_type='dict'),
