@@ -3,7 +3,7 @@
 """
 api_projects/__init__.py
 - provides the API endpoints for consuming and producing
-	REST requests and responses
+  REST requests and responses
 """
 
 from solidata_api.api import *
@@ -24,14 +24,14 @@ blueprint = Blueprint( 'api_projects', __name__, template_folder=app.config["TEM
 # CORS(blueprint)
 
 ### create API
-api = MyApi(  	blueprint,
-						title	= "Solidata API : PROJECTS",
-						version	= app.config["APP_VERSION"],
-						description	= app.config["CODE_LINK"] + " : create, list, delete, edit... projects",
-						doc	= '/documentation',
-						default	= 'create',
-						authorizations = auth_check,
-						# security		='apikey' # globally ask for pikey auth
+api = MyApi( blueprint,
+  title	= "Solidata API : PROJECTS",
+  version	= app.config["APP_VERSION"],
+  description	= app.config["CODE_LINK"] + "{} - auth_mode : {} / create, list, delete, edit... projects",
+  doc	= '/documentation',
+  default	= 'create',
+  authorizations = auth_check,
+  # security		='apikey' # globally ask for pikey auth
 )
 
 
@@ -39,11 +39,11 @@ api = MyApi(  	blueprint,
 
 @api.errorhandler
 def default_error_handler(e):
-		message = 'An unhandled exception occurred.'
-		log.exception(message)
+    message = 'An unhandled exception occurred.'
+    log.exception(message)
 
-		if not app.config["FLASK_DEBUG"]:
-				return {'message': message}, 500
+    if not app.config["FLASK_DEBUG"]:
+        return {'message': message}, 500
 
 
 ### + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + ###

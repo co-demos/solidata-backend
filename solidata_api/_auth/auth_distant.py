@@ -22,13 +22,16 @@ def getTokenFromRequest(api_request) :
   retrieve token sent with request 
   """ 
 
-  # log.debug("getTokenFromRequest/ api_request : \n%s", pformat(api_request.__dict__) )
+  log.debug("getTokenFromRequest ..." )
+  # log.debug("getTokenFromRequest / api_request : \n%s", pformat(api_request.__dict__) )
 
   token_header_location = app.config["JWT_HEADER_NAME"]
   token_from_headers = api_request.headers.get(token_header_location, None)
+  log.debug("getTokenFromRequest / token_from_headers : %s", token_from_headers )
 
   token_query_string = app.config["JWT_QUERY_STRING_NAME"]
   token_from_query = api_request.args.get(token_query_string, None)
+  log.debug("getTokenFromRequest / token_from_query : %s", token_from_query )
 
   if token_from_headers or token_from_query : 
     return token_from_headers if token_from_headers else token_from_query
@@ -70,13 +73,10 @@ def getDistantEndpointconfig (func_name) :
 
   return endpoint_config
 
-
-def distantAuthCall ( request=None, query={}, payload=None, func_name='user_login') :
+def distantAuthCall ( api_request=None, query={}, payload={}, func_name='user_login') :
   """ 
-  login given a payload
-  sending request to the auth url / service 
-  specified in config
-  ... doing so to avoid middle man risk when editing
+  sending request to the distant auth url / service 
+  specified in config + env vars
   """
 
   print (". "*50)
@@ -95,6 +95,7 @@ def distantAuthCall ( request=None, query={}, payload=None, func_name='user_logi
   post_args = endpoint_config["post_args"]
   url_args = endpoint_config["url_args"]
   method = endpoint_config["method"]
+  resp_path = endpoint_config["resp_path"]
 
   ### build url base for specific auth
   base_url = auth_url_root + url_append 
@@ -108,10 +109,11 @@ def distantAuthCall ( request=None, query={}, payload=None, func_name='user_logi
     headers = app.config["AUTH_URL_HEADERS_PAYLOAD"]
 
   ### TO DO : add token to requests in headers or query_string
-  token = getTokenFromRequest(request)
+  token = getTokenFromRequest(api_request)
   log.debug("token : %s", token )
 
   token_query_string = ""
+
   if token :
     token_locations = app.config["AUTH_URL_TOKEN_LOCATION"]
     
@@ -169,6 +171,10 @@ def distantAuthCall ( request=None, query={}, payload=None, func_name='user_logi
   log.debug("distantAuthCall / response.status_code : %s", response.status_code )
   response_json = response.json()
   log.debug("distantAuthCall / response_json : \n%s", pformat(response_json) )
+  
+  if resp_path : 
+    ### remap response_json given resp_path if specific 
+    response_json = { arg_k : response_json[arg_v] for arg_k, arg_v in resp_path.items() if arg_v in response_json.keys() }
 
   return response_json
 
@@ -176,63 +182,67 @@ def distantAuthCall ( request=None, query={}, payload=None, func_name='user_logi
 
 
 
-# def checkJWT(token, token_type, return_resp=False):
-#   """ 
-#   authenticate a token 
-#   sending request to the auth url / service 
-#   specified in config
-#   ... doing so to avoid middle man risk when editing
-#   """
-
-#   print (". "*50)
-
-#   auth_url_root = getDistantAuthUrl()
-#   log.debug("checkJWT / auth_url_root : %s", auth_url_root )
-
-
-
-
-
-
-def distant_auth (func_name=None, as_decorator=True, request=None) : 
+def distant_auth ( func_name=None, return_resp=True, ns_payload=False, raw_payload={} ) : 
   """
   """
+
+  response = None
+
   log.debug("-@- distant_auth ...")
   log.debug("-@- distant_auth ... func_name : %s", func_name)
-  computed = "test distannt_auth not as decorator"
   
-  auth_url_root = getDistantAuthUrl()
-  log.debug("-@- distant_auth / auth_url_root : %s", auth_url_root )
+  is_distant_auth = app.config['AUTH_MODE'] == 'internal'
+  log.debug("-@- distant_auth ... is_distant_auth : %s", is_distant_auth)
 
   def _distant_auth(func):
     """
     """
+
+    log.debug("-@- distant_auth / before @wraps ... payload : \n%s", pformat(raw_payload))
+
     @wraps(func)
     def wrapper(*args, **kwargs):
       
       print(".......")
-      log.debug("-@- distant_auth ... inside")
-      log.debug("-@- distant_auth ... inside ... func_name : %s", func_name)
-      print(".......")
+      log.debug("-@- distant_auth / inside")
+      log.debug("-@- distant_auth / inside ... func_name : %s", func_name)
+      log.debug("-@- distant_auth / inside ... return_resp : %s", return_resp)
+      log.debug("-@- distant_auth / inside ... ns_payload : %s", ns_payload)
+      log.debug("-@- distant_auth / inside ... raw_payload : \n%s", pformat(raw_payload))
+      
+      payload = raw_payload
 
-      ### DO STUFF FOR DISTANT AUTH
-      endpoint_config = getDistantEndpointconfig(func_name)
-      log.debug("-@- distant_auth ... inside ... endpoint_config : \n%s", pformat(endpoint_config))
+      if ns_payload :
+        try :
+          payload = request.get_json()
+        except :
+          payload = raw_payload
 
+      log.debug("-@- distant_auth / inside ... payload : \n%s", pformat(payload) )
 
+      if request : 
+        log.debug("-@- distant_auth / there is a request ..." )
+        # log.debug("getTokenFromRequest/ api_request : \n%s", pformat(request.__dict__) )
+        response = distantAuthCall( api_request=request, func_name=func_name, payload=payload )
+        log.debug("-@- distant_auth / inside ... response : \n%s", pformat(response))
 
+      else : 
+        log.debug("-@- distant_auth / there is no request ..." )
+        # log.debug("getTokenFromRequest/ api_request : %s", pformat(request) )
+        response = None
 
+      print("... ... ...")
 
-      return func(*args, **kwargs)
+      if return_resp == False : 
+        ### return decorated function if return_resp == True
+        print("-@- distant_auth / return_resp == False / return function ....")
+        return func(*args, **kwargs)
+      
+      else : 
+        ### return result if return_resp == False 
+        print("-@- distant_auth / return_resp == True / return response ....")
+        return response
 
     return wrapper
 
-
-  if as_decorator : 
-    ### return decorated function if as_decorator == True
-    return _distant_auth
-  
-  else : 
-    ### return result if as_decorated == False 
-    return computed
-
+  return _distant_auth

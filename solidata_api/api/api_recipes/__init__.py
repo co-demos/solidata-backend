@@ -22,14 +22,14 @@ blueprint = Blueprint( 'api_recipes', __name__, template_folder=app.config["TEMP
 # CORS(blueprint)
 
 ### create API
-api = MyApi(  	blueprint,
-						title				= "Solidata API : RECIPES",
-						version			= "0.1",
-						description	= app.config["CODE_LINK"] +  " : create, list, delete, edit... recipes",
-						doc					= '/documentation',
-						default			= 'create',
-						authorizations	= auth_check,
-						# security			='apikey' # globally ask for pikey auth
+api = MyApi( blueprint,
+  title				= "Solidata API : RECIPES",
+  version			= "0.1",
+  description	= "{} - auth_mode : {} / create, list, delete, edit... recipes".format(app.config["CODE_LINK"], app.config["AUTH_MODE"]),
+  doc					= '/documentation',
+  default			= 'create',
+  authorizations	= auth_check,
+  # security			='apikey' # globally ask for pikey auth
 )
 
 
@@ -37,11 +37,11 @@ api = MyApi(  	blueprint,
 
 @api.errorhandler
 def default_error_handler(e):
-		message = 'An unhandled exception occurred.'
-		log.exception(message)
+    message = 'An unhandled exception occurred.'
+    log.exception(message)
 
-		if not app.config["FLASK_DEBUG"]:
-				return {'message': message}, 500
+    if not app.config["FLASK_DEBUG"]:
+        return {'message': message}, 500
 
 
 ### + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + ###

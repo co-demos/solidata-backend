@@ -22,14 +22,14 @@ blueprint = Blueprint( 'api_datamodel_fields', __name__, template_folder=app.con
 # CORS(blueprint)
 
 ### create API
-api = MyApi(  	blueprint,
-						title	= "Solidata API : DATAMODEL FIELDS",
-						version	= app.config["APP_VERSION"],
-						description	= app.config["CODE_LINK"] + " : create, list, delete, edit... datamodel fields",
-						doc	= '/documentation',
-						default = 'create',
-						authorizations = auth_check,
-						# security			='apikey' # globally ask for pikey auth
+api = MyApi( blueprint,
+  title	= "Solidata API : DATAMODEL FIELDS",
+  version	= app.config["APP_VERSION"],
+  description	= "{} - auth_mode : {} / create, list, delete, edit... datamodel fields".format(app.config["CODE_LINK"], app.config["AUTH_MODE"]),
+  doc	= '/documentation',
+  default = 'create',
+  authorizations = auth_check,
+  # security			='apikey' # globally ask for pikey auth
 )
 
 
@@ -37,11 +37,11 @@ api = MyApi(  	blueprint,
 
 @api.errorhandler
 def default_error_handler(e):
-		message = 'An unhandled exception occurred.'
-		log.exception(message)
+    message = 'An unhandled exception occurred.'
+    log.exception(message)
 
-		if not app.config["FLASK_DEBUG"]:
-				return {'message': message}, 500
+    if not app.config["FLASK_DEBUG"]:
+        return {'message': message}, 500
 
 
 ### + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + ###

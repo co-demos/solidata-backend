@@ -15,8 +15,8 @@ from flask import request, current_app as app, jsonify
 # cf : http://flask-jwt-extended.readthedocs.io/en/latest/tokens_from_complex_object.html
 from solidata_api.application import jwt_manager
 from flask_jwt_extended import (
-    verify_jwt_in_request, create_access_token,
-    get_jwt_claims, get_raw_jwt
+  verify_jwt_in_request, create_access_token,
+  get_jwt_claims, get_raw_jwt
 )
 
 ### import ext JWT check 
@@ -72,8 +72,8 @@ def add_claims_to_access_token(user):
   log.debug("-@- claims loader")
   log.debug("user : \n %s", pformat(user))
 
-  computed = distant_auth(func_name="add_claims_to_access_token", as_decorator=False)
-  log.debug("computed : %s", computed)
+  # computed = distant_auth(func_name="add_claims_to_access_token", as_decorator=False)
+  # log.debug("computed : %s", computed)
 
   sent_token = get_raw_jwt()
   log.debug("sent_token : \n %s", pformat(sent_token))
@@ -90,16 +90,16 @@ def add_claims_to_access_token(user):
 
   ### specific claims
   if "renew_pwd" in user : 
-    claims_to_store_into_jwt["renew_pwd"] 			= user["renew_pwd"]
+    claims_to_store_into_jwt["renew_pwd"] = user["renew_pwd"]
 
   if "reset_pwd" in user : 
-    claims_to_store_into_jwt["reset_pwd"] 			= user["reset_pwd"]
+    claims_to_store_into_jwt["reset_pwd"] = user["reset_pwd"]
 
   if "confirm_email" in user : 
-    claims_to_store_into_jwt["confirm_email"] 		= user["confirm_email"]
+    claims_to_store_into_jwt["confirm_email"] = user["confirm_email"]
 
   if user["infos"]["email"] == "anonymous" : 
-    claims_to_store_into_jwt["is_anonymous"] 		= True
+    claims_to_store_into_jwt["is_anonymous"]  = True
 
   if "renew_refresh_token" in user : 
     claims_to_store_into_jwt["renew_refresh_token"] = True
@@ -123,8 +123,8 @@ def user_identity_lookup(user):
   log.debug("-@- identity loader")
   log.debug("user : \n %s", pformat(user))
   
-  computed = distant_auth(func_name="user_identity_lookup", as_decorator=False)
-  log.debug("computed : %s", computed)
+  # computed = distant_auth(func_name="user_identity_lookup", as_decorator=False)
+  # log.debug("computed : %s", computed)
 
   try : 
     ### load email as identity in the jwt
@@ -170,16 +170,44 @@ def my_expired_token_callback():
 ### + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + ###
 # cf : http://flask-jwt-extended.readthedocs.io/en/latest/custom_decorators.html 
 
+def returnClaims():
+  """
+  """ 
+  log.debug("-@- returnClaims / is_distant_auth : %s", is_distant_auth)
+
+  if is_distant_auth : 
+    ### distant call to get claims
+    anonymous_claims = {
+      "auth" : {
+        "role" : None,
+      },
+      "renew_pwd" : False,
+      "reset_pwd" : False,
+      "confirm_email" : False,
+    }
+    response = distantAuthCall( api_request=request, func_name="token_claims" )
+    log.debug("-@- returnClaims / response : \n%s", pformat(response) )
+    claims = response.get( "claims", anonymous_claims )
+
+  else : 
+    ### innternal call to get claims
+    verify_jwt_in_request()
+    claims = get_jwt_claims()
+
+  log.debug("-@- returnClaims / claims : \n %s", pformat(claims) )
+
+  return claims
+
+
 def anonymous_required(func):
   """
   Check if user is not logged yet in access_token 
   and has a 'anonymous' role
   """
-  @distant_auth(func_name="anonymous_required")
   @wraps(func)
   def wrapper(*args, **kwargs):
     
-    log.debug("-@- anonymous checker")
+    log.debug("-@- anonymous required")
 
     ### ignore JWT / anonymous required if ANOJWT_MODE is disabled
     if app.config["ANOJWT_MODE"] == "no" : 
@@ -188,21 +216,23 @@ def anonymous_required(func):
     ### otherwise verify jwt
     else :
 
-      if is_distant_auth : 
-        log.debug("-@- anonymous checker / is_distant_auth : %s", is_distant_auth)
-        response = distantAuthCall( request=request, func_name="anonymous_required" )
-        log.debug("-@- anonymous checker / response : \n%s", pformat(response) )
-        claims = response["data"]
+      log.debug("kwargs : \n %s", pformat(kwargs) )
+      claims = returnClaims()
 
-      else : 
-        verify_jwt_in_request()
-        claims = get_jwt_claims()
-        log.debug("claims : \n %s", pformat(claims) )
+      # if is_distant_auth : 
+      #   log.debug("-@- anonymous required / is_distant_auth : %s", is_distant_auth)
+      #   response = distantAuthCall( request=request, func_name="anonymous_required" )
+      #   log.debug("-@- anonymous checker / response : \n%s", pformat(response) )
+      #   claims = response["claims"]
+
+      # else : 
+      #   verify_jwt_in_request()
+      #   claims = get_jwt_claims()
+      #   log.debug("claims : \n %s", pformat(claims) )
         
-        log.debug("kwargs : \n %s", pformat(kwargs) )
-
       if claims["auth"]["role"] != 'anonymous' :
-        return { "msg" : "Anonymous users only !!! " }, 403
+        return { "msg" : "Anonymous users only !!! You need to get an anonymous token" }, 403
+      
       else :
         return func(*args, **kwargs)
   
@@ -214,19 +244,28 @@ def anonymous_or_guest_required(func):
   Check if user is not logged yet in access_token 
   and has a 'guest' or 'anonymous' role
   """
-  @distant_auth(func_name="anonymous_or_guest_required")
   @wraps(func)
   def wrapper(*args, **kwargs):
     
-    log.debug("-@- anonymous checker")
+    log.debug("-@- anonymous_or_guest_required ")
 
-    verify_jwt_in_request()
-    claims = get_jwt_claims()
-    log.debug("claims : \n %s", pformat(claims) )
+    claims = returnClaims()
+
+    # if is_distant_auth : 
+    #   log.debug("-@- anonymous_or_guest_required / is_distant_auth : %s", is_distant_auth)
+    #   response = distantAuthCall( request=request, func_name="token_claims" )
+    #   log.debug("-@- anonymous checker / response : \n%s", pformat(response) )
+    #   claims = response["claims"]
+
+    # else : 
+
+    #   verify_jwt_in_request()
+    #   claims = get_jwt_claims()
+    # log.debug("-@- anonymous_or_guest_required / claims : \n %s", pformat(claims) )
     
-    log.debug("kwargs : \n %s", pformat(kwargs) )
+    # log.debug("-@- anonymous_or_guest_required / kwargs : \n %s", pformat(kwargs) )
 
-    if claims["auth"]["role"] not in  ['guest', 'anonymous'] :
+    if claims["auth"]["role"] not in ['guest', 'anonymous'] :
       return { "msg" : "Anonymous users or guests only !!! " }, 403
     else:
       return func(*args, **kwargs)
@@ -239,17 +278,17 @@ def guest_required(func):
   Check if user is not logged yet in access_token 
   and has a 'guest' or 'anonymous' role
   """
-  @distant_auth(func_name="guest_required")
   @wraps(func)
   def wrapper(*args, **kwargs):
     
-    log.debug("-@- anonymous checker")
+    log.debug("-@- guest_required")
 
-    verify_jwt_in_request()
-    claims = get_jwt_claims()
-    log.debug("claims : \n %s", pformat(claims) )
+    claims = returnClaims()
+    # verify_jwt_in_request()
+    # claims = get_jwt_claims()
+    # log.debug("-@- guest_required / claims : \n %s", pformat(claims) )
     
-    log.debug("kwargs : \n %s", pformat(kwargs) )
+    # log.debug("-@- guest_required / kwargs : \n %s", pformat(kwargs) )
 
     if claims["auth"]["role"] not in  ['admin', 'guest', 'registred', "staff" ] :
       return { "msg" : "Registred users only !!! " }, 403
@@ -263,17 +302,17 @@ def admin_required(func):
   """
   Check if user has admin level in access_token
   """
-  @distant_auth(func_name="admin_required")
   @wraps(func)
   def wrapper(*args, **kwargs):
     
-    log.debug("-@- admin checker")
+    log.debug("-@- admin_required")
 
-    verify_jwt_in_request()
-    claims = get_jwt_claims()
-    log.debug("claims : \n %s", pformat(claims) )
+    claims = returnClaims()
+    # verify_jwt_in_request()
+    # claims = get_jwt_claims()
+    # log.debug("-@- admin_required / claims : \n %s", pformat(claims) )
     
-    log.debug("kwargs : \n %s", pformat(kwargs) )
+    # log.debug("-@- admin_required / kwargs : \n %s", pformat(kwargs) )
 
     if claims["auth"]["role"] != 'admin':
       return { "msg" : "Admins only !!! " }, 403
@@ -287,17 +326,17 @@ def staff_required(func):
   """
   Check if user has admin or staff level in access_token
   """
-  @distant_auth(func_name="staff_required")
   @wraps(func)
   def wrapper(*args, **kwargs):
     
-    log.debug("-@- admin checker")
+    log.debug("-@- staff_required")
 
-    verify_jwt_in_request()
-    claims = get_jwt_claims()
-    log.debug("claims : \n %s", pformat(claims) )
+    claims = returnClaims()
+    # verify_jwt_in_request()
+    # claims = get_jwt_claims()
+    # log.debug("-@- staff_required / claims : \n %s", pformat(claims) )
     
-    log.debug("kwargs : \n %s", pformat(kwargs) )
+    # log.debug("-@- staff_required / kwargs : \n %s", pformat(kwargs) )
 
     if claims["auth"]["role"] not in  ['admin', 'staff']:
       return { "msg" : "Admins or staff only !!! " }, 403
@@ -311,17 +350,17 @@ def renew_pwd_required(func):
   """
   Check if access_token has a claim 'renew_pwd' == True
   """
-  @distant_auth(func_name="renew_pwd_required")
   @wraps(func)
   def wrapper(*args, **kwargs):
     
     log.debug("-@- renew_pwd checker")
 
-    verify_jwt_in_request()
-    claims = get_jwt_claims()
-    log.debug("claims : \n %s", pformat(claims) )
+    claims = returnClaims()
+    # verify_jwt_in_request()
+    # claims = get_jwt_claims()
+    # log.debug("-@- renew_pwd_required / claims : \n %s", pformat(claims) )
     
-    log.debug("kwargs : \n %s", pformat(kwargs) )
+    # log.debug("-@- renew_pwd_required / kwargs : \n %s", pformat(kwargs) )
 
     try :
       if claims["renew_pwd"] == True:
@@ -336,17 +375,17 @@ def reset_pwd_required(func):
   """
   Check if access_token has a claim 'reset_pwd' == True
   """
-  @distant_auth(func_name="reset_pwd_required")
   @wraps(func)
   def wrapper(*args, **kwargs):
     
     log.debug("-@- reset_pwd checker")
 
-    verify_jwt_in_request()
-    claims = get_jwt_claims()
-    log.debug("claims : \n %s", pformat(claims) )
-    
     log.debug("kwargs : \n %s", pformat(kwargs) )
+
+    claims = returnClaims()
+    # verify_jwt_in_request()
+    # claims = get_jwt_claims()
+    # log.debug("-@- reset_pwd checker / claims : \n %s", pformat(claims) )
 
     try :  
       if claims["reset_pwd"] == True:
@@ -361,15 +400,15 @@ def confirm_email_required(func):
   """
   Check if access_token has a claim 'confirm_email' == True
   """
-  @distant_auth(func_name="confirm_email_required")
   @wraps(func)
   def wrapper(*args, **kwargs):
     
     log.debug("-@- confirm_email checker")
+    claims = returnClaims()
 
-    verify_jwt_in_request()
-    claims = get_jwt_claims()
-    log.debug("claims : \n %s", pformat(claims) )
+    # verify_jwt_in_request()
+    # claims = get_jwt_claims()
+    # log.debug("-@- confirm_email checker / claims : \n %s", pformat(claims) )
     
     if claims["confirm_email"] != True:
       return { "msg" : "'confirm_email' token expected !!! " }, 403
@@ -387,17 +426,17 @@ def current_user_required(func):
   - if he has admin level 
   """
   
-  @distant_auth(func_name="current_user_required")
   @wraps(func)
   def wrapper(*args, **kwargs):
 
-    log.debug("-@- current_user checker")
+    log.debug("-@- current_user_required")
 
-    verify_jwt_in_request()
-    claims = get_jwt_claims()
-    log.debug("claims : \n %s", pformat(claims) )
+    claims = returnClaims()
+    # verify_jwt_in_request()
+    # claims = get_jwt_claims()
+    # log.debug("-@- current_user_required / claims : \n %s", pformat(claims) )
 
-    log.debug("kwargs : \n %s", pformat(kwargs) )
+    # log.debug("-@- current_user_required / kwargs : \n %s", pformat(kwargs) )
 
     ### check in kwargs
     user_oid = kwargs["usr_id"] 

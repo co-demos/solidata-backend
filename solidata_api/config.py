@@ -208,6 +208,7 @@ class BaseConfig(object):
           "url_args" :    formatEnvVar('AUTH_DISTANT_USER_GET_ONE_URL_ARGS', format_type='dict'),
           "url_append" :  formatEnvVar('AUTH_DISTANT_USER_GET_ONE_URL_APPEND', format_type='string'),
           "post_args" :   formatEnvVar('AUTH_DISTANT_USER_GET_ONE_POST_ARGS', format_type='dict'),
+          "resp_path" :   formatEnvVar('AUTH_DISTANT_USER_GET_ONE_RESP', format_type='dict'),
         },
         "list"    : {
           "url" :         os.getenv("AUTH_DISTANT_USER_GET_LIST"),
@@ -215,6 +216,7 @@ class BaseConfig(object):
           "url_args" :    formatEnvVar('AUTH_DISTANT_USER_GET_LIST_URL_ARGS', format_type='dict'),
           "url_append" :  formatEnvVar('AUTH_DISTANT_USER_GET_LIST_URL_APPEND', format_type='string'),
           "post_args" :   formatEnvVar('AUTH_DISTANT_USER_GET_LIST_POST_ARGS', format_type='dict'),
+          "resp_path" :   formatEnvVar('AUTH_DISTANT_USER_GET_LIST_RESP', format_type='dict'),
         },
       },
       ###  
@@ -225,6 +227,7 @@ class BaseConfig(object):
           "url_args" :    formatEnvVar('AUTH_DISTANT_USER_REGISTER_URL_ARGS', format_type='dict'),
           "url_append" :  formatEnvVar('AUTH_DISTANT_USER_REGISTER_URL_APPEND', format_type='string'),
           "post_args" :   formatEnvVar('AUTH_DISTANT_USER_REGISTER_POST_ARGS', format_type='dict'),
+          "resp_path" :   formatEnvVar('AUTH_DISTANT_USER_REGISTER_RESP', format_type='dict'),
         },
         "confirm_email" : {
           "url" :         os.getenv("AUTH_DISTANT_USER_CONF_EMAIL"),
@@ -232,6 +235,7 @@ class BaseConfig(object):
           "url_args" :    formatEnvVar('AUTH_DISTANT_USER_CONF_EMAIL_URL_ARGS', format_type='dict'),
           "url_append" :  formatEnvVar('AUTH_DISTANT_USER_CONF_EMAIL_URL_APPEND', format_type='string'),
           "post_args" :   formatEnvVar('AUTH_DISTANT_USER_CONF_EMAIL_POST_ARGS', format_type='dict'),
+          "resp_path" :   formatEnvVar('AUTH_DISTANT_USER_CONF_EMAIL_RESP', format_type='dict'),
         },
         "user_edit" : {
           "url" :         os.getenv("AUTH_DISTANT_USER_EDIT"),
@@ -239,6 +243,7 @@ class BaseConfig(object):
           "url_args" :    formatEnvVar('AUTH_DISTANT_USER_EDIT_URL_ARGS', format_type='dict'),
           "url_append" :  formatEnvVar('AUTH_DISTANT_USER_EDIT_URL_APPEND', format_type='string'),
           "post_args" :   formatEnvVar('AUTH_DISTANT_USER_EDIT_POST_ARGS', format_type='dict'),
+          "resp_path" :   formatEnvVar('AUTH_DISTANT_USER_EDIT_RESP', format_type='dict'),
         },
         "user_delete" : {
           "url" :         os.getenv("AUTH_DISTANT_USER_DELETE"),
@@ -246,6 +251,7 @@ class BaseConfig(object):
           "url_args" :    formatEnvVar('AUTH_DISTANT_USER_DELETE_URL_ARGS', format_type='dict'),
           "url_append" :  formatEnvVar('AUTH_DISTANT_USER_DELETE_URL_APPEND', format_type='string'),
           "post_args" :   formatEnvVar('AUTH_DISTANT_USER_DELETE_POST_ARGS', format_type='dict'),
+          "resp_path" :   formatEnvVar('AUTH_DISTANT_USER_DELETE_RESP', format_type='dict'),
         },
       },
       ###
@@ -256,6 +262,7 @@ class BaseConfig(object):
           "url_args" :    formatEnvVar('AUTH_DISTANT_USER_LOGIN_URL_ARGS', format_type='dict'),
           "url_append" :  formatEnvVar('AUTH_DISTANT_USER_LOGIN_URL_APPEND', format_type='string'),
           "post_args" :   formatEnvVar('AUTH_DISTANT_USER_LOGIN_POST_ARGS', format_type='dict'),
+          "resp_path" :   formatEnvVar('AUTH_DISTANT_USER_LOGIN_RESP', format_type='dict'),
         },
         "login_anonymous" : {
           "url" :         os.getenv("AUTH_DISTANT_USER_LOGIN_ANO"),
@@ -263,6 +270,7 @@ class BaseConfig(object):
           "url_args" :    formatEnvVar('AUTH_DISTANT_USER_LOGIN_ANO_URL_ARGS', format_type='dict'),
           "url_append" :  formatEnvVar('AUTH_DISTANT_USER_LOGIN_ANO_URL_APPEND', format_type='string'),
           "post_args" :   formatEnvVar('AUTH_DISTANT_USER_LOGIN_ANO_POST_ARGS', format_type='dict'),
+          "resp_path" :   formatEnvVar('AUTH_DISTANT_USER_LOGIN_ANO_RESP', format_type='dict'),
         },
       },
       ###
@@ -273,6 +281,7 @@ class BaseConfig(object):
           "url_args" :    formatEnvVar('AUTH_DISTANT_USER_TOK_CONFIRM_URL_ARGS', format_type='dict'),
           "url_append" :  formatEnvVar('AUTH_DISTANT_USER_TOK_CONFIRM_URL_APPEND', format_type='string'),
           "post_args" :   formatEnvVar('AUTH_DISTANT_USER_TOK_CONFIRM_POST_ARGS', format_type='dict'),
+          "resp_path" :   formatEnvVar('AUTH_DISTANT_USER_TOK_CONFIRM_RESP', format_type='dict'),
         },
         "fresh_access_token" : {
           "url" :         os.getenv("AUTH_DISTANT_USER_TOK_FRESH"),
@@ -280,6 +289,7 @@ class BaseConfig(object):
           "url_args" :    formatEnvVar('AUTH_DISTANT_USER_TOK_FRESH_URL_ARGS', format_type='dict'),
           "url_append" :  formatEnvVar('AUTH_DISTANT_USER_TOK_FRESH_URL_APPEND', format_type='string'),
           "post_args" :   formatEnvVar('AUTH_DISTANT_USER_TOK_FRESH_POST_ARGS', format_type='dict'),
+          "resp_path" :   formatEnvVar('AUTH_DISTANT_USER_TOK_FRESH_RESP', format_type='dict'),
         },
         "new_access_token" : {
           "url" :         os.getenv("AUTH_DISTANT_USER_TOK_NEW"),
@@ -287,6 +297,7 @@ class BaseConfig(object):
           "url_args" :    formatEnvVar('AUTH_DISTANT_USER_TOK_NEW_URL_ARGS', format_type='dict'),
           "url_append" :  formatEnvVar('AUTH_DISTANT_USER_TOK_NEW_URL_APPEND', format_type='string'),
           "post_args" :   formatEnvVar('AUTH_DISTANT_USER_TOK_NEW_POST_ARGS', format_type='dict'),
+          "resp_path" :   formatEnvVar('AUTH_DISTANT_USER_TOK_NEW_RESP', format_type='dict'),
         },
         "new_refresh_token" : {
           "url" :         os.getenv("AUTH_DISTANT_USER_TOK_NEW_REFRESH"),
@@ -294,6 +305,7 @@ class BaseConfig(object):
           "url_args" :    formatEnvVar('AUTH_DISTANT_USER_TOK_NEW_REFRESH_URL_ARGS', format_type='dict'),
           "url_append" :  formatEnvVar('AUTH_DISTANT_USER_TOK_NEW_REFRESH_URL_APPEND', format_type='string'),
           "post_args" :   formatEnvVar('AUTH_DISTANT_USER_TOK_NEW_REFRESH_POST_ARGS', format_type='dict'),
+          "resp_path" :   formatEnvVar('AUTH_DISTANT_USER_TOK_NEW_REFRESH_RESP', format_type='dict'),
         },
         "token_claims" : {
           "url" :         os.getenv("AUTH_DISTANT_USER_TOK_CLAIMS"),
@@ -301,6 +313,7 @@ class BaseConfig(object):
           "url_args" :    formatEnvVar('AUTH_DISTANT_USER_TOK_CLAIMS_URL_ARGS', format_type='dict'),
           "url_append" :  formatEnvVar('AUTH_DISTANT_USER_TOK_CLAIMS_POST_ARGS', format_type='string'),
           "post_args" :   formatEnvVar('AUTH_DISTANT_USER_TOK_CLAIMS_URL_APPEND', format_type='dict'),
+          "resp_path" :   formatEnvVar('AUTH_DISTANT_USER_TOK_CLAIMS_RESP', format_type='dict'),
         },
       },
       ###
@@ -311,6 +324,7 @@ class BaseConfig(object):
           "url_args" :    formatEnvVar('AUTH_DISTANT_PWD_FORGOT_URL_ARGS', format_type='dict'),
           "url_append" :  formatEnvVar('AUTH_DISTANT_PWD_FORGOT_URL_APPEND', format_type='string'),
           "post_args" :   formatEnvVar('AUTH_DISTANT_PWD_FORGOT_POST_ARGS', format_type='dict'),
+          "resp_path" :   formatEnvVar('AUTH_DISTANT_PWD_FORGOT_RESP', format_type='dict'),
         },
         "pwd_reset" : {
           "url" :         os.getenv("AUTH_DISTANT_PWD_RESET"),
@@ -318,6 +332,7 @@ class BaseConfig(object):
           "url_args" :    formatEnvVar('AUTH_DISTANT_PWD_RESET_URL_ARGS', format_type='dict'),
           "url_append" :  formatEnvVar('AUTH_DISTANT_PWD_RESET_URL_APPEND', format_type='string'),
           "post_args" :   formatEnvVar('AUTH_DISTANT_PWD_RESET_POST_ARGS', format_type='dict'),
+          "resp_path" :   formatEnvVar('AUTH_DISTANT_PWD_RESET_RESP', format_type='dict'),
         },
         "pwd_reset_link" : {
           "url" :         os.getenv("AUTH_DISTANT_PWD_RESET_LINK"),
@@ -325,6 +340,7 @@ class BaseConfig(object):
           "url_args" :    formatEnvVar('AUTH_DISTANT_PWD_RESET_LINK_URL_ARGS', format_type='dict'),
           "url_append" :  formatEnvVar('AUTH_DISTANT_PWD_RESET_LINK_URL_APPEND', format_type='string'),
           "post_args" :   formatEnvVar('AUTH_DISTANT_PWD_RESET_LINK_POST_ARGS', format_type='dict'),
+          "resp_path" :   formatEnvVar('AUTH_DISTANT_PWD_RESET_LINK_RESP', format_type='dict'),
         },
       }
     }

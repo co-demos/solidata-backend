@@ -62,6 +62,7 @@ class Register(Resource):
   @ns.expect(model_register_user, validate=True)
   @anonymous_required
   # @ns.marshal_with(model_register_user_out, envelope="new_user", code=201)
+  @distant_auth(func_name="register_user", return_resp=True, ns_payload=True )
   def post(self):
     """
     Create / register a new user
@@ -76,9 +77,6 @@ class Register(Resource):
     log.debug ("payload : \n{}".format(pformat(ns.payload)))
 
 
-
-
-
     ### INTERNNAL AUTH MODE ###
     ### - - - - - - - - - - ###
     if app.config['AUTH_MODE'] == 'internal' :
@@ -89,154 +87,156 @@ class Register(Resource):
       log.debug("raw_jwt : \n %s", pformat(raw_jwt) )
 
 
+      ### TO DO : movee up inside register as AUTH_MODE != internal
+
+      ### retrieve infos from form 
+      if app.config["RSA_MODE"] == "yes" : 
+        payload_email_encrypted = ns.payload["email_encrypt"]
+        log.debug("payload_email_encrypted : \n%s", payload_email_encrypted )
+        payload_email = email_decoded = RSAdecrypt(payload_email_encrypted)
+        log.debug("email_decoded    : %s", email_decoded )
+
+        payload_pwd_encrypted = ns.payload["pwd_encrypt"]
+        log.debug("payload_pwd_encrypted : \n%s", payload_pwd_encrypted )
+        payload_pwd = password_decoded = RSAdecrypt(payload_pwd_encrypted)
+        log.debug("password_decoded    : %s", password_decoded )
+
+      else : 
+        payload_email= ns.payload["email"]
+        log.debug("payload_email : \n%s", payload_email )
+
+        payload_pwd = ns.payload["pwd"]
+        log.debug("payload_pwd : \n%s", payload_pwd )
+
+
+
+      ### TO DO = add a ghost field to filter out spams and robots
+
+
+
+      ### chek if user already exists in db
+      existing_user = mongo_users.find_one({"infos.email" : payload_email})
+      log.debug("existing_user : %s ", pformat(existing_user))
+
+      if existing_user is None and payload_pwd not in bad_passwords and payload_email != "anonymous" :
+
+        ### create hashpassword
+        hashpass = generate_password_hash(payload_pwd, method='sha256')
+        log.debug("hashpass : %s", hashpass)
+
+        ### create user dict from form's data
+        new_user_infos 	= {
+          "infos" 	: ns.payload, 
+          # "auth" 	: ns.payload 
+          "log"		: { "created_at" 	: datetime.utcnow() },
+          "profile" 	: { "lang" 		: ns.payload["lang"]}
+        }
+        new_user 															= marshal( new_user_infos , model_user_complete_in )
+        new_user["auth"]["pwd"] 							= hashpass
+        new_user["infos"]["email"]						= payload_email
+        new_user["infos"]["open_level_edit"]	= "private"
+        new_user["infos"]["open_level_show"]	= "commons"
+        new_user["specs"]["doc_type"] 				= "usr"
+        new_user["team"] 											= []
+
+        ### agreement to terms and conditions
+        new_user["infos"]["agreement"]				= ns.payload["agreement"]
+
+        ### temporary save new user in db 
+        _id = mongo_users.insert( new_user )
+        log.info("new user is being created : \n%s", pformat(new_user))
+        log.info("_id : \n%s", pformat(_id))
+
+        ### add _id to data
+        new_user["_id"] 				= str(_id) # str(user_created["_id"])
+        
+        ### create access tokens
+        log.debug("... create_access_token")
+        access_token 	= create_access_token( identity=new_user )
+        
+        ### create refresh tokens
+        log.debug("... refresh_token")
+        ### just create a temporary refresh token once / so it could be blacklisted
+        expires 				= app.config["JWT_CONFIRM_EMAIL_REFRESH_TOKEN_EXPIRES"] # timedelta(days=7)
+        refresh_token 	= create_refresh_token( identity=new_user, expires_delta=expires )
+        
+        ### add confirm_email to claims for access_token_confirm_email
+        new_user["confirm_email"]	 = True
+        access_token_confirm_email = create_access_token( identity=new_user, expires_delta=expires )
+        log.debug("access_token_confirm_email : \n %s", access_token_confirm_email )
+
+        # tokens = {
+        # 		'access_token'		: access_token,
+        # 		'refresh_token'		: refresh_token,
+        # 		'salt_token' 			: public_key_str,
+        # 		# 'access_token_confirm_email' 	: access_token_confirm_email
+        # }
+        tokens = {
+            'access_token'		: access_token,
+            'refresh_token'		: refresh_token,
+            # 'access_token_confirm_email' 	: access_token_confirm_email
+        }
+        if app.config["RSA_MODE"]=="yes" : 
+          tokens["salt_token"] = public_key_str
+        log.info("tokens : \n %s", pformat(tokens))
+
+        ### update new user in db		
+        # user_created = mongo_users.find_one({"infos.email" : payload_email})
+        user_created = mongo_users.find_one({"_id" : _id})
+        user_created["log"]["created_by"] 	= _id
+        user_created["auth"]["refr_tok"] 	= refresh_token
+        mongo_users.save(user_created)
+        log.info("new user is updated with its tokens : \n%s", pformat(new_user))
+
+        ### marshall output
+        new_user_out = marshal( new_user, model_register_user_out )
+
+        message = "new user has been created but no confirmation link has been sent"
+
+        ### send a confirmation email if not RUN_MODE not 'dev'
+        if app.config["RUN_MODE"] in ["prod", "dev_email", "preprod"] : 
+          
+          try : 
+            # create url for confirmation to send in the mail
+            confirm_url = app.config["DOMAIN_NAME"] + api.url_for(Confirm_email, token=access_token_confirm_email, external=True)
+            log.info("confirm_url : \n %s", confirm_url)
+
+            # generate html body of the email
+            html = render_template('emails/confirm_email.html', confirm_url=confirm_url)
+            
+            # send the mail
+            send_email( "Confirm your email", payload_email, template=html )
+
+            message = "new user has been created and a confirmation link has been sent, you have {} days to confirm your email, otherwise this account will be erased...".format(expires)
+        
+          except : 
+            message = "new user has been created but error occured while sending confirmation link to the email"
+
+        return { 
+              "msg"			: message,
+              "expires"	: str(expires), 
+              "tokens"	: tokens,
+              "_id"			: str(user_created["_id"]),
+              "infos"		: user_created["infos"],
+              "data"		: new_user_out,
+            }, 200
+
+      else :
+        
+        return {
+          "msg" : "email '{}' is already taken ".format(payload_email)
+        }, 401
+
     ### DISTANT AUTH MODE ###
     ### - - - - - - - - - ###
     else : 
       log.debug("app.config['AUTH_MODE'] : %s", app.config['AUTH_MODE'] )
 
-      response = distantAuthCall( request=request, payload=ns.payload, func_name='register_user' )
+      response = distantAuthCall( api_request=request, payload=ns.payload, func_name='register_user' )
       return response 
 
 
 
-    ### TO DO : movee up inside register as AUTH_MODE != internal
-    ### retrieve infos from form 
-    if app.config["RSA_MODE"] == "yes" : 
-      payload_email_encrypted = ns.payload["email_encrypt"]
-      log.debug("payload_email_encrypted : \n%s", payload_email_encrypted )
-      payload_email = email_decoded = RSAdecrypt(payload_email_encrypted)
-      log.debug("email_decoded    : %s", email_decoded )
-
-      payload_pwd_encrypted = ns.payload["pwd_encrypt"]
-      log.debug("payload_pwd_encrypted : \n%s", payload_pwd_encrypted )
-      payload_pwd = password_decoded = RSAdecrypt(payload_pwd_encrypted)
-      log.debug("password_decoded    : %s", password_decoded )
-
-    else : 
-      payload_email= ns.payload["email"]
-      log.debug("payload_email : \n%s", payload_email )
-
-      payload_pwd = ns.payload["pwd"]
-      log.debug("payload_pwd : \n%s", payload_pwd )
-
-
-
-    ### TO DO = add a ghost field to filter out spams and robots
-
-
-
-    ### chek if user already exists in db
-    existing_user = mongo_users.find_one({"infos.email" : payload_email})
-    log.debug("existing_user : %s ", pformat(existing_user))
-
-    if existing_user is None and payload_pwd not in bad_passwords and payload_email != "anonymous" :
-
-      ### create hashpassword
-      hashpass = generate_password_hash(payload_pwd, method='sha256')
-      log.debug("hashpass : %s", hashpass)
-
-      ### create user dict from form's data
-      new_user_infos 	= {
-        "infos" 	: ns.payload, 
-        # "auth" 	: ns.payload 
-        "log"		: { "created_at" 	: datetime.utcnow() },
-        "profile" 	: { "lang" 		: ns.payload["lang"]}
-      }
-      new_user 															= marshal( new_user_infos , model_user_complete_in )
-      new_user["auth"]["pwd"] 							= hashpass
-      new_user["infos"]["email"]						= payload_email
-      new_user["infos"]["open_level_edit"]	= "private"
-      new_user["infos"]["open_level_show"]	= "commons"
-      new_user["specs"]["doc_type"] 				= "usr"
-      new_user["team"] 											= []
-
-      ### agreement to terms and conditions
-      new_user["infos"]["agreement"]				= ns.payload["agreement"]
-
-      ### temporary save new user in db 
-      _id = mongo_users.insert( new_user )
-      log.info("new user is being created : \n%s", pformat(new_user))
-      log.info("_id : \n%s", pformat(_id))
-
-      ### add _id to data
-      new_user["_id"] 				= str(_id) # str(user_created["_id"])
-      
-      ### create access tokens
-      log.debug("... create_access_token")
-      access_token 	= create_access_token( identity=new_user )
-      
-      ### create refresh tokens
-      log.debug("... refresh_token")
-      ### just create a temporary refresh token once / so it could be blacklisted
-      expires 				= app.config["JWT_CONFIRM_EMAIL_REFRESH_TOKEN_EXPIRES"] # timedelta(days=7)
-      refresh_token 	= create_refresh_token( identity=new_user, expires_delta=expires )
-      
-      ### add confirm_email to claims for access_token_confirm_email
-      new_user["confirm_email"]	 = True
-      access_token_confirm_email = create_access_token( identity=new_user, expires_delta=expires )
-      log.debug("access_token_confirm_email : \n %s", access_token_confirm_email )
-
-      # tokens = {
-      # 		'access_token'		: access_token,
-      # 		'refresh_token'		: refresh_token,
-      # 		'salt_token' 			: public_key_str,
-      # 		# 'access_token_confirm_email' 	: access_token_confirm_email
-      # }
-      tokens = {
-          'access_token'		: access_token,
-          'refresh_token'		: refresh_token,
-          # 'access_token_confirm_email' 	: access_token_confirm_email
-      }
-      if app.config["RSA_MODE"]=="yes" : 
-        tokens["salt_token"] = public_key_str
-      log.info("tokens : \n %s", pformat(tokens))
-
-      ### update new user in db		
-      # user_created = mongo_users.find_one({"infos.email" : payload_email})
-      user_created = mongo_users.find_one({"_id" : _id})
-      user_created["log"]["created_by"] 	= _id
-      user_created["auth"]["refr_tok"] 	= refresh_token
-      mongo_users.save(user_created)
-      log.info("new user is updated with its tokens : \n%s", pformat(new_user))
-
-      ### marshall output
-      new_user_out = marshal( new_user, model_register_user_out )
-
-      message = "new user has been created but no confirmation link has been sent"
-
-      ### send a confirmation email if not RUN_MODE not 'dev'
-      if app.config["RUN_MODE"] in ["prod", "dev_email", "preprod"] : 
-        
-        try : 
-          # create url for confirmation to send in the mail
-          confirm_url = app.config["DOMAIN_NAME"] + api.url_for(Confirm_email, token=access_token_confirm_email, external=True)
-          log.info("confirm_url : \n %s", confirm_url)
-
-          # generate html body of the email
-          html = render_template('emails/confirm_email.html', confirm_url=confirm_url)
-          
-          # send the mail
-          send_email( "Confirm your email", payload_email, template=html )
-
-          message = "new user has been created and a confirmation link has been sent, you have {} days to confirm your email, otherwise this account will be erased...".format(expires)
-      
-        except : 
-          message = "new user has been created but error occured while sending confirmation link to the email"
-
-      return { 
-            "msg"			: message,
-            "expires"	: str(expires), 
-            "tokens"	: tokens,
-            "_id"			: str(user_created["_id"]),
-            "infos"		: user_created["infos"],
-            "data"		: new_user_out,
-          }, 200
-
-    else :
-      
-      return {
-            "msg" : "email '{}' is already taken ".format(payload_email)
-          }, 401
 
 
 
@@ -252,8 +252,6 @@ class Confirm_email(Resource):
   # Making a request to this endpoint would look like:
   # /confirm?token=<REFRESH_TOKEN>
   @ns.doc('confirm_email')
-  # @jwt_required 
-  # @jwt_refresh_token_required ### verify refresh_token from request args or header
   @confirm_email_required
   def get(self):
     """
@@ -270,7 +268,6 @@ class Confirm_email(Resource):
 
     user_identity = get_jwt_identity()
     log.debug( "user_identity : \n %s", user_identity ) 
-
 
     ### check client identity and claims
     claims 				= get_jwt_claims() 
