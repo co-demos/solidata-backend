@@ -73,7 +73,7 @@ def getDistantEndpointconfig (func_name) :
 
   return endpoint_config
 
-def distantAuthCall ( api_request=None, query={}, payload={}, func_name='user_login') :
+def distantAuthCall ( api_request=None, query={}, payload={}, func_name='user_login', url_var=None) :
   """ 
   sending request to the distant auth url / service 
   specified in config + env vars
@@ -82,6 +82,7 @@ def distantAuthCall ( api_request=None, query={}, payload={}, func_name='user_lo
   print (". "*50)
   log.debug("distantAuthCall/ payload : \n%s", pformat(payload) )
   log.debug("distantAuthCall/ log_type : %s", func_name )
+  log.debug("distantAuthCall/ url_var : %s", url_var )
 
   ### retrieve distant auth url root
   auth_url_root = getDistantAuthUrl()
@@ -96,6 +97,13 @@ def distantAuthCall ( api_request=None, query={}, payload={}, func_name='user_lo
   url_args = endpoint_config["url_args"]
   method = endpoint_config["method"]
   resp_path = endpoint_config["resp_path"]
+
+
+
+  ### TO DO : append url_append
+  # get param from request
+
+
 
   ### build url base for specific auth
   base_url = auth_url_root + url_append 
@@ -127,6 +135,7 @@ def distantAuthCall ( api_request=None, query={}, payload={}, func_name='user_lo
       headers[token_header_name] = token
 
   log.debug("distantAuthCall / headers : \n%s", pformat(headers) )
+
 
 
 
@@ -182,7 +191,7 @@ def distantAuthCall ( api_request=None, query={}, payload={}, func_name='user_lo
 
 
 
-def distant_auth ( func_name=None, return_resp=True, ns_payload=False, raw_payload={} ) : 
+def distant_auth( func_name=None, return_resp=True, ns_payload=False, raw_payload={}, url_var=None ) : 
   """
   """
 
@@ -209,6 +218,7 @@ def distant_auth ( func_name=None, return_resp=True, ns_payload=False, raw_paylo
       log.debug("-@- distant_auth / inside ... return_resp : %s", return_resp)
       log.debug("-@- distant_auth / inside ... ns_payload : %s", ns_payload)
       log.debug("-@- distant_auth / inside ... raw_payload : \n%s", pformat(raw_payload))
+      log.debug("-@- distant_auth / inside ... url_var : %s", url_var)
       
       payload = raw_payload
 
@@ -223,7 +233,7 @@ def distant_auth ( func_name=None, return_resp=True, ns_payload=False, raw_paylo
       if request : 
         log.debug("-@- distant_auth / there is a request ..." )
         # log.debug("getTokenFromRequest/ api_request : \n%s", pformat(request.__dict__) )
-        response = distantAuthCall( api_request=request, func_name=func_name, payload=payload )
+        response = distantAuthCall( api_request=request, func_name=func_name, payload=payload, url_var=url_var )
         log.debug("-@- distant_auth / inside ... response : \n%s", pformat(response))
 
       else : 

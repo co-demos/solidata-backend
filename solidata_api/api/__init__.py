@@ -138,7 +138,8 @@ from solidata_api._auth.authorizations import authorizations as auth_check
 from solidata_api._auth.auth_distant import *
 from solidata_api._auth import ( 
   admin_required, current_user_required, confirm_email_required, guest_required,
-  anonymous_required, renew_pwd_required, reset_pwd_required 
+  anonymous_required, renew_pwd_required, reset_pwd_required,
+  jwt_optional_sd, jwt_required_sd
 )
 
 from solidata_api._parsers 	import * # pagination_arguments

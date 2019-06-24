@@ -45,7 +45,8 @@ class Dsi_infos_(Resource):
   @ns.doc('dsi_infos')
   # @ns.expect(query_arguments)
   @ns.expect(query_data_dsi_arguments)
-  @jwt_optional
+  # @jwt_optional
+  @jwt_optional_sd
   @ns.doc(params={'doc_id': 'the dataset input oid'})
   def get(self, doc_id):
     """
@@ -99,7 +100,8 @@ class Dsi_List(Resource):
 
   @ns.doc('dsi_list')
   @ns.expect(query_pag_args)
-  @jwt_optional
+  # @jwt_optional
+  @jwt_optional_sd
   # @anonymous_required
   def get(self):
     """

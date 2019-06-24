@@ -45,7 +45,8 @@ class Usr_infos_(Resource):
   
   @ns.doc('usr_infos')
   # @ns.expect(query_arguments)
-  @jwt_optional
+  # @jwt_optional
+  @jwt_optional_sd
   @ns.doc(params={'doc_id': 'the usr oid'})
   @distant_auth(func_name="users_get_one", return_resp=True )
   def get(self, doc_id):
@@ -96,7 +97,8 @@ class Usr_List(Resource):
 
   @ns.doc('usr_list')
   @ns.expect(query_pag_args)
-  @jwt_optional
+  # @jwt_optional
+  @jwt_optional_sd
   # @anonymous_required
   @distant_auth(func_name="users_get_list", return_resp=True )
   def get(self):

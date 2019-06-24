@@ -46,7 +46,8 @@ class Dso_infos_(Resource):
 
   @ns.doc('dso_infos')
   @ns.expect(query_data_dso_arguments)
-  @jwt_optional
+  # @jwt_optional
+  @jwt_optional_sd
   @ns.doc(params={'doc_id': 'the dataset output oid'})
   def get(self, doc_id):
     """
@@ -103,7 +104,8 @@ class Dso_List(Resource):
 
   @ns.doc('dso_list')
   @ns.expect(query_pag_args)
-  @jwt_optional
+  # @jwt_optional
+  @jwt_optional_sd
   # @anonymous_required
   def get(self):
     """

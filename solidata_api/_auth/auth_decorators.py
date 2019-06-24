@@ -15,8 +15,9 @@ from flask import request, current_app as app, jsonify
 # cf : http://flask-jwt-extended.readthedocs.io/en/latest/tokens_from_complex_object.html
 from solidata_api.application import jwt_manager
 from flask_jwt_extended import (
-  verify_jwt_in_request, create_access_token,
-  get_jwt_claims, get_raw_jwt
+  verify_jwt_in_request, verify_jwt_in_request_optional, create_access_token,
+  get_jwt_claims, get_raw_jwt,
+  jwt_optional, jwt_required
 )
 
 ### import ext JWT check 
@@ -170,7 +171,7 @@ def my_expired_token_callback():
 ### + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + ###
 # cf : http://flask-jwt-extended.readthedocs.io/en/latest/custom_decorators.html 
 
-def returnClaims():
+def returnClaims(is_optional=False):
   """
   """ 
   log.debug("-@- returnClaims / is_distant_auth : %s", is_distant_auth)
@@ -190,13 +191,59 @@ def returnClaims():
     claims = response.get( "claims", anonymous_claims )
 
   else : 
-    ### innternal call to get claims
-    verify_jwt_in_request()
+
+    ### internal call to get claims
+    if is_optional == True :
+      verify_jwt_in_request_optional()
+    else : 
+      verify_jwt_in_request()
+
     claims = get_jwt_claims()
 
   log.debug("-@- returnClaims / claims : \n %s", pformat(claims) )
 
   return claims
+
+
+
+def jwt_optional_sd(func):
+  """
+  Check if user has a valid jwt (optional)
+  """
+
+  log.debug("-@- jwt_optionnal_sd ...")
+
+  @wraps(func)
+  def wrapper(*args, **kwargs):
+
+    ### 
+    log.debug("kwargs : \n %s", pformat(kwargs) )
+    claims = returnClaims(is_optional=True)
+    log.debug("-@- jwt_optionnal_sd / claims : \n%s", pformat(claims))
+
+    return func(*args, **kwargs)
+
+  return wrapper
+
+
+def jwt_required_sd(func):
+  """
+  Check if user has a valid jwt
+  """
+
+  log.debug("-@- jwt_required_sd ...")
+
+  @wraps(func)
+  def wrapper(*args, **kwargs):
+
+    ### 
+    log.debug("kwargs : \n %s", pformat(kwargs) )
+    claims = returnClaims()
+    log.debug("-@- jwt_required_sd / claims : \n%s", pformat(claims))
+    
+    return func(*args, **kwargs)
+
+  return wrapper
 
 
 def anonymous_required(func):

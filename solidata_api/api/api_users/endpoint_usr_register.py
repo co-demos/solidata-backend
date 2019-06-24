@@ -15,16 +15,16 @@ ns = Namespace('register', description='Users : register related endpoints')
 
 ### import models 
 from solidata_api._models.models_user import *  
-model_register_user			= NewUser(ns).model
-model_user							= User_infos(ns)
+model_register_user     = NewUser(ns).model
+model_user              = User_infos(ns)
 model_register_user_out	= model_user.model_complete_out
-model_user_complete_in	= model_user.model_complete_in
-model_user_access				= model_user.model_access
-model_user_login_out		= model_user.model_login_out
+model_user_complete_in  = model_user.model_complete_in
+model_user_access       = model_user.model_access
+model_user_login_out    = model_user.model_login_out
 
-models 			= {
-  "model_doc_in" 			: model_user_complete_in ,
-  "model_doc_out" 		: model_register_user_out 
+models = {
+  "model_doc_in"  : model_user_complete_in ,
+  "model_doc_out" : model_register_user_out 
 } 
 
 ### CREATE DEFAULT USRs FROM config_default_docs
