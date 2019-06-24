@@ -38,7 +38,6 @@ def Query_db_doc (
     page_args,
     query_args,
     roles_for_complete 	= ["admin"],
-
   ):
 
   ### DEBUGGING
@@ -185,12 +184,12 @@ def Query_db_doc (
 
       ### append "f_data" if doc is in ["dsi", "dsr", "dsr"]
       document_out = GetFData( document_type, 
-            can_access_complete, not_filtered,
-            document, document_out, doc_oid, doc_open_level_show,
-            team_oids, created_by_oid, roles_for_complete, user_role, user_oid,
-            page_args, query_args,
-            # shuffle_seed, sort_by, slice_f_data, 
-            # start_index, end_index
+        can_access_complete, not_filtered,
+        document, document_out, doc_oid, doc_open_level_show,
+        team_oids, created_by_oid, roles_for_complete, user_role, user_oid,
+        page_args, query_args,
+        # shuffle_seed, sort_by, slice_f_data, 
+        # start_index, end_index
       )
       message = "dear user, there is the complete {} you requested ".format(document_type_full)
 
@@ -214,12 +213,12 @@ def Query_db_doc (
 
         ### append "f_data" if doc is in ["dsi", "dsr", "dsr"]
         document_out = GetFData( document_type, 
-              can_access_complete, not_filtered,
-              document, document_out, doc_oid, doc_open_level_show,
-              team_oids, created_by_oid, roles_for_complete, user_role, user_oid,
-              page_args, query_args,
-              # shuffle_seed, sort_by, slice_f_data, 
-              # start_index, end_index
+          can_access_complete, not_filtered,
+          document, document_out, doc_oid, doc_open_level_show,
+          team_oids, created_by_oid, roles_for_complete, user_role, user_oid,
+          page_args, query_args,
+          # shuffle_seed, sort_by, slice_f_data, 
+          # start_index, end_index
         )
         message = "dear user, there is the {} you requested given your credentials".format(document_type_full)
 
@@ -238,18 +237,18 @@ def Query_db_doc (
 
   else : 
     ### no document / empty response
-    response_code	= 404
-    message 			= "dear user, there is no {} with this oid : {}".format(document_type_full, doc_id) 
+    response_code = 404
+    message       = "dear user, there is no {} with this oid : {}".format(document_type_full, doc_id) 
     document_out  = None
 
 
   log.debug('query_resume : \n%s', pformat(query_resume)) 
   # log.debug( 'document_out["data_raw"]["f_data"][0] : \n%s', pformat(document_out["data_raw"]["f_data"][0]) )
-  log.debug( 'document_out : \n%s', pformat(document_out) )
+  # log.debug( 'document_out : \n%s', pformat(document_out) )
 
   ### return response
   return {
-        "msg" 	: message,
-        "data"	: document_out,
-        "query"	: query_resume,
-      }, response_code
+    "msg" 	: message,
+    "data"	: document_out,
+    "query"	: query_resume,
+  }, response_code

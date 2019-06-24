@@ -14,7 +14,7 @@ from  	datetime import datetime, timedelta
 from	bson.objectid 	import ObjectId
 from 	flask_restplus 	import  marshal
 
-from 	. 	import db_dict_by_type, Marshaller
+from 	. import db_dict_by_type, Marshaller
 from 	solidata_api._choices._choices_docs import doc_type_dict
 from 	solidata_api._core.utils import merge_by_key, chain
 from 	solidata_api._core.pandas_ops import pd, concat_dsi_list, prj_dsi_mapping_as_df

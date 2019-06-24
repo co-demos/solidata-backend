@@ -171,7 +171,7 @@ def my_expired_token_callback():
 ### + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + ###
 # cf : http://flask-jwt-extended.readthedocs.io/en/latest/custom_decorators.html 
 
-def returnClaims(is_optional=False):
+def returnClaims(is_optional=False, return_anonymous_as_default=True):
   """
   """ 
   log.debug("-@- returnClaims / is_distant_auth : %s", is_distant_auth)
@@ -179,6 +179,7 @@ def returnClaims(is_optional=False):
   if is_distant_auth : 
     ### distant call to get claims
     anonymous_claims = {
+      "_id" : None,
       "auth" : {
         "role" : None,
       },
@@ -188,7 +189,10 @@ def returnClaims(is_optional=False):
     }
     response = distantAuthCall( api_request=request, func_name="token_claims" )
     log.debug("-@- returnClaims / response : \n%s", pformat(response) )
-    claims = response.get( "claims", anonymous_claims )
+    if return_anonymous_as_default :
+      claims = response.get( "claims", anonymous_claims )
+    else :
+      claims = response.get( "claims", {} )
 
   else : 
 

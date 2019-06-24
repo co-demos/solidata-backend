@@ -228,11 +228,11 @@ def distant_auth( func_name=None, return_resp=True, ns_payload=False, raw_payloa
 
   response = None
 
-  log.debug("-@- distant_auth ...")
-  log.debug("-@- distant_auth ... func_name : %s", func_name)
+  # log.debug("-@- distant_auth ...")
+  # log.debug("-@- distant_auth ... func_name : %s", func_name)
   
   is_distant_auth = app.config['AUTH_MODE'] == 'internal'
-  log.debug("-@- distant_auth ... is_distant_auth : %s", is_distant_auth)
+  # log.debug("-@- distant_auth ... is_distant_auth : %s", is_distant_auth)
 
   def _distant_auth(func):
     """

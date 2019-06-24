@@ -13,7 +13,7 @@ def formatEnvVar(var_name, format_type='boolean', separator=',', dict_separator=
   # print("formatEnvVar / var_name : ", var_name)
 
   env_var = os.getenv(var_name)
-  print("formatEnvVar / env_var : {} / var_name : {} ".format(env_var, var_name) )
+  # print("formatEnvVar / env_var : {} / var_name : {} ".format(env_var, var_name) )
 
   # if format_type in ['boolean', 'string'] :
   if format_type in ['boolean'] :
@@ -22,7 +22,7 @@ def formatEnvVar(var_name, format_type='boolean', separator=',', dict_separator=
     else :
       return False
 
-  print("...")  
+  # print("...")  
 
   # trransform as none if it is the case
   if env_var in [ 'n', 'N', 'none', 'None', 'NONE', 'nan', 'Nan', 'NAN', 'null', 'Null','NULL', 'undefined'] : 

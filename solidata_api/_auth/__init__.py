@@ -23,6 +23,7 @@ from .auth_decorators import (
   admin_required, current_user_required, guest_required,
   renew_pwd_required, reset_pwd_required,
   confirm_email_required,
-  jwt_optional_sd, jwt_required_sd
+  jwt_optional_sd, jwt_required_sd,
+  returnClaims
 ) # token_required
 # from .auth_confirmation_email import generate_confirmation_token, confirm_token
