@@ -73,7 +73,7 @@ def getDistantEndpointconfig (func_name) :
 
   return endpoint_config
 
-def distantAuthCall ( api_request=None, query={}, payload={}, func_name='user_login', url_var=None) :
+def distantAuthCall ( api_request=None, query={}, payload={}, func_name='user_login') :
   """ 
   sending request to the distant auth url / service 
   specified in config + env vars
@@ -82,7 +82,6 @@ def distantAuthCall ( api_request=None, query={}, payload={}, func_name='user_lo
   print (". "*50)
   log.debug("distantAuthCall/ payload : \n%s", pformat(payload) )
   log.debug("distantAuthCall/ log_type : %s", func_name )
-  log.debug("distantAuthCall/ url_var : %s", url_var )
 
   ### retrieve distant auth url root
   auth_url_root = getDistantAuthUrl()
@@ -92,22 +91,39 @@ def distantAuthCall ( api_request=None, query={}, payload={}, func_name='user_lo
   endpoint_config = getDistantEndpointconfig(func_name)
   log.debug("distantAuthCall/ endpoint_config : \n%s", pformat(endpoint_config) )
   
-  url_append = endpoint_config["url"]
-  post_args = endpoint_config["post_args"]
-  url_args = endpoint_config["url_args"]
+  url = endpoint_config["url"]
   method = endpoint_config["method"]
+  url_args = endpoint_config["url_args"]
+  post_args = endpoint_config["post_args"]
+  url_append = endpoint_config["url_append"]
   resp_path = endpoint_config["resp_path"]
 
 
-
-  ### TO DO : append url_append
-  # get param from request
-
-
-
   ### build url base for specific auth
-  base_url = auth_url_root + url_append 
+  base_url = auth_url_root + url 
   log.debug("distantAuthCall/ base_url : %s", base_url )
+
+
+
+
+  ### TO DO : append url_append value
+  # get param from request
+  log.debug("distantAuthCall / url_append : %s", url_append )
+  if url_append : 
+    # log.debug("distantAuthCall / api_request : \n%s", pformat(api_request.__dict__) )
+    url_append_string = ""
+    url_append_list = []
+    view_args = api_request.view_args
+    log.debug("distantAuthCall / view_args : \n%s", pformat(view_args) )
+    for append_arg in url_append : 
+      append_val = view_args[append_arg]
+      url_append_list.append(append_val)
+    url_append_string = "/".join(url_append_list)
+    base_url += url_append_string
+
+
+
+
 
   
 
@@ -146,6 +162,7 @@ def distantAuthCall ( api_request=None, query={}, payload={}, func_name='user_lo
     for arg_k, arg_v in url_args.items() : 
       url_args_string += "&{}={}".format( arg_k, query[arg_v]  )
   query_url = base_url + url_args_string + token_query_string
+  log.debug("distantAuthCall / query_url : %s", query_url)
 
 
 
@@ -159,14 +176,28 @@ def distantAuthCall ( api_request=None, query={}, payload={}, func_name='user_lo
   elif method in ['POST', 'PUT'] :
 
     ### TO DO : rebuild payload given 
+
     # remap payload given endpoint connfig 
-    payload_remapped = {
-      post_args[k] : v for k,v in payload.items() if k in post_args.keys()
-    }
+    payload_type = type(payload)
+    log.debug("distantAuthCall / payload_type : %s", payload_type )
+    
+    if post_args : 
+      if payload_type == dict : 
+        payload_remapped = {
+          post_args[k] : v for k,v in payload.items() if k in post_args.keys()
+        }
+      elif payload_type == list : 
+        payload_remapped = []
+        for p in payload : 
+          p_remapped = {
+            post_args[k] : v for k,v in p.items() if k in post_args.keys()
+          }
+          payload_remapped.append(p_remapped)
+    else : 
+      payload_remapped = payload
     log.debug("distantAuthCall / payload_remapped : \n%s", pformat(payload_remapped) )
 
     # then payload as json
-    # payload_json = json.dumps(payload)
     payload_json = json.dumps(payload_remapped)
     log.debug("distantAuthCall / payload_json : %s", payload_json )
 
@@ -174,7 +205,7 @@ def distantAuthCall ( api_request=None, query={}, payload={}, func_name='user_lo
       response = requests.post(query_url, data=payload_json, headers=headers)
 
     elif method == 'PUT' : 
-      response = requests.put(query_url, data=payload, headers=headers)
+      response = requests.put(query_url, data=payload_json, headers=headers)
 
 
   log.debug("distantAuthCall / response.status_code : %s", response.status_code )
@@ -191,7 +222,7 @@ def distantAuthCall ( api_request=None, query={}, payload={}, func_name='user_lo
 
 
 
-def distant_auth( func_name=None, return_resp=True, ns_payload=False, raw_payload={}, url_var=None ) : 
+def distant_auth( func_name=None, return_resp=True, ns_payload=False, raw_payload={} ) : 
   """
   """
 
@@ -218,7 +249,6 @@ def distant_auth( func_name=None, return_resp=True, ns_payload=False, raw_payloa
       log.debug("-@- distant_auth / inside ... return_resp : %s", return_resp)
       log.debug("-@- distant_auth / inside ... ns_payload : %s", ns_payload)
       log.debug("-@- distant_auth / inside ... raw_payload : \n%s", pformat(raw_payload))
-      log.debug("-@- distant_auth / inside ... url_var : %s", url_var)
       
       payload = raw_payload
 
@@ -233,7 +263,7 @@ def distant_auth( func_name=None, return_resp=True, ns_payload=False, raw_payloa
       if request : 
         log.debug("-@- distant_auth / there is a request ..." )
         # log.debug("getTokenFromRequest/ api_request : \n%s", pformat(request.__dict__) )
-        response = distantAuthCall( api_request=request, func_name=func_name, payload=payload, url_var=url_var )
+        response = distantAuthCall( api_request=request, func_name=func_name, payload=payload )
         log.debug("-@- distant_auth / inside ... response : \n%s", pformat(response))
 
       else : 

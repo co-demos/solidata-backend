@@ -53,7 +53,7 @@ class Usr_edit(Resource) :
   # @guest_required
   @ns.expect([model_update])
   @api.doc(params={'usr_id': 'the usr oid'})
-  @distant_auth(func_name="update_user", return_resp=True, ns_payload=True, url_var='usr_id' )
+  @distant_auth(func_name="update_user", return_resp=True, ns_payload=True )
   def put(self, usr_id):
     """
     Update a  usr in db
@@ -72,7 +72,7 @@ class Usr_edit(Resource) :
     log.debug ("payload : \n{}".format(pformat(ns.payload)))
 
     ### check client identity and claims
-    claims 			= get_jwt_claims() 
+    claims = get_jwt_claims() 
     log.debug("claims : \n %s", pformat(claims) )
 
     ### update doc in DB
@@ -89,9 +89,6 @@ class Usr_edit(Resource) :
     log.debug("updated_doc : \n%s ", pformat(updated_doc) )
 
     ### return updated document
-    # return {
-    # 	"msg" : "updating doc...."
-    # }, 200
     return updated_doc, response_code
 
 
@@ -99,7 +96,7 @@ class Usr_edit(Resource) :
   @ns.response(204, 'document deleted')
   @current_user_required
   @api.doc(params={'usr_id': 'the usr oid'})
-  @distant_auth(func_name="delete_user", return_resp=True, url_var='usr_id' )
+  @distant_auth(func_name="delete_user", return_resp=True )
   def delete(self, usr_id):
     """
     Delete an user given its _id / only doable by admin or current_user
