@@ -25,15 +25,17 @@ default location for parsers
 class RequestParserBuilder :
 
   def __init__(	self, 
-          add_pagination = False,
-          add_slice_query = True,
-          add_queries = False,
-          add_data_query = False,
-          add_map_query = False,
-          add_filter_query = False,
-          add_files = False,
-          add_stats_query=False,
-        ) : 
+      add_pagination = False,
+      add_slice_query = True,
+      add_queries = False,
+      add_data_query = False,
+      add_utils_query = False,
+      add_map_query = False,
+      add_filter_query = False,
+      add_files = False,
+      add_stats_query=False,
+      add_shuffle=False,
+    ) : 
 
     self.baseParser = reqparse.RequestParser()
 
@@ -42,7 +44,7 @@ class RequestParserBuilder :
       required=False, 
       default=None, 
       help='add token to slug to be able to retrieve more complete data from a DSO',
-      # location = 'values'
+      location = 'args' ### default : ('json', values) => 'args' will look only in query string
     )
 
     if add_pagination : 
@@ -60,6 +62,18 @@ class RequestParserBuilder :
         choices=[0, 1, 2, 3, 4, 5, 10, 20, 25, 50, 75, 100, 200, 300, 400, 500],
         default=10, 
         help='Results per page ( get all results if 0 )',
+        # location = 'values'
+      )
+      self.baseParser.add_argument('sort_by', 
+        type=str, 
+        required=False, 
+        help='sort data in document according to this field in records',
+        # location = 'values'
+      )
+      self.baseParser.add_argument('descending', 
+        type=inputs.boolean, 
+        required=False, 
+        help='sort data in document ascending/descending',
         # location = 'values'
       )
 
@@ -196,57 +210,60 @@ class RequestParserBuilder :
         type=str, 
         required=False, 
         help='find data in documents matching this string in records',
-        # location = 'values'
+        location = 'args'
       )
       self.baseParser.add_argument('search_in', 
         action='append',
         type=str, 
         required=False, 
         help='find data in document matching this string as field in records',
-        # location = 'values'
+        location = 'args'
       )
       self.baseParser.add_argument('search_filters', 
         action='append',
         type=str, 
         required=False, 
         help='find data in document matching this kind of string : <field_name>__<valueToSearch>',
-        # location = 'values'
+        location = 'args'
       )
       self.baseParser.add_argument('search_tags', 
         action='split',
         type=str, 
         required=False, 
         help='find documents matching this list of tags strings (separated by commas)',
-        # location = 'values'
+        location = 'args'
       )
       self.baseParser.add_argument('search_int', 
         action='append',
         type=int, 
         required=False, 
         help='find data in document matching this integer in records',
-        # location = 'values'
+        location = 'args'
       )
       self.baseParser.add_argument('search_float', 
         action='append',
         type=float, 
         required=False, 
         help='find data in document matching this float in records',
-        # location = 'values'
+        location = 'args'
       )
       self.baseParser.add_argument('item_id', 
         action='append',
         type=str, 
         required=False, 
         help='find data inside the document matching this list of ids in records',
-        # location = 'values'
+        location = 'args'
       )
       # self.baseParser.add_argument('only_f_data', 
       # 	type=inputs.boolean, 
       # 	required=False, 
       # 	default=False, 
       # 	help='just retrieve the f_data of the result',
-      # 	# location = 'values'
+      #	# location = 'args'
       # )
+
+    if add_utils_query : 
+
       self.baseParser.add_argument('is_complete', 
         type=inputs.boolean, 
         required=False, 
@@ -259,26 +276,6 @@ class RequestParserBuilder :
         required=False, 
         default=False, 
         help='just retrieve the stats of the result',
-        # location = 'values'
-      )
-      self.baseParser.add_argument('sort_by', 
-        type=str, 
-        required=False, 
-        help='sort data in document according to this field in records',
-        # location = 'values'
-      )
-      self.baseParser.add_argument('descending', 
-        type=inputs.boolean, 
-        required=False, 
-        help='sort data in document ascending/descending',
-        # location = 'values'
-      )
-      self.baseParser.add_argument('shuffle_seed', 
-        # action='append',
-        type=int, 
-        required=False, 
-        default=None, 
-        help='shuffle the list of results given a seed',
         # location = 'values'
       )
       self.baseParser.add_argument('normalize', 
@@ -303,6 +300,17 @@ class RequestParserBuilder :
         type=str, 
         required=False, 
         help='agregate unique values of this list of fields title (separated by commas)',
+        # location = 'values'
+      )
+    
+    if add_shuffle : 
+
+      self.baseParser.add_argument('shuffle_seed', 
+        # action='append',
+        type=int, 
+        required=False, 
+        default=None, 
+        help='shuffle the list of results given a seed',
         # location = 'values'
       )
 
@@ -401,7 +409,10 @@ q_arguments = RequestParserBuilder( add_queries=True )
 query_arguments = q_arguments.get_parser
 # log.debug(" query_arguments : \n%s ", pformat(query_arguments.args[0].__dict__ ))
 
-q_data = RequestParserBuilder( add_data_query=True )
+q_data = RequestParserBuilder( 
+  add_data_query=True,
+  add_utils_query=True,
+)
 query_data_arguments = q_data.get_parser
 
 q_files = RequestParserBuilder( add_files=True )
@@ -412,28 +423,44 @@ pagination_arguments = q_pagination.get_parser
 
 q_pag_args = RequestParserBuilder(
   add_pagination=True, 
-  add_queries=True
+  add_queries=True,
+  add_shuffle=True, 
 )
 query_pag_args = q_pag_args.get_parser
 
 ### DSI REQUEST ARGS
 q_data_dsi = RequestParserBuilder(
-  add_pagination=True, 
+  # add_pagination=True, 
   add_slice_query=False, 
   add_data_query=True, 
+  add_utils_query=True,
   add_stats_query=True,
   add_map_query=True, 
-  add_filter_query=True
+  add_filter_query=True,
+  # add_shuffle=True, 
 )
 query_data_dsi_arguments = q_data_dsi.get_parser
 
 ### DSO REQUEST ARGS
 q_data_dso = RequestParserBuilder(
-  add_pagination=True, 
+  # add_pagination=True, 
   add_slice_query=False, 
   add_data_query=True, 
+  add_utils_query=True,
   add_stats_query=True, 
   add_map_query=True, 
-  add_filter_query=True
+  add_filter_query=True,
+  # add_shuffle=True, 
 )
 query_data_dso_arguments = q_data_dso.get_parser
+
+### STATS REQUEST ARGS
+q_data_stats = RequestParserBuilder(
+  # add_pagination=True, 
+  add_slice_query=False, 
+  add_data_query=True, 
+  # add_stats_query=True, 
+  # add_map_query=True, 
+  # add_filter_query=True
+)
+query_data_stats_arguments = q_data_stats.get_parser

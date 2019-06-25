@@ -15,17 +15,19 @@ ns = Namespace('infos', description='Dataset outputs : request and list all dso 
 
 ### import models 
 from solidata_api._models.models_dataset_output import * 
-mod_doc							= Dso_infos(ns)
-model_doc_out				= mod_doc.mod_complete_out
+mod_doc             = Dso_infos(ns)
+model_doc_out       = mod_doc.mod_complete_out
 model_doc_guest_out	= mod_doc.model_guest_out
-model_doc_min				= mod_doc.model_minimum
-models 							= {
-  "model_doc_out" 			: model_doc_out ,
+model_doc_min       = mod_doc.model_minimum
+models = {
+  "model_doc_out"       : model_doc_out ,
   "model_doc_guest_out" : model_doc_guest_out ,
-  "model_doc_min" 			: model_doc_min ,
+  "model_doc_min"       : model_doc_min ,
 } 
 
-
+from solidata_api._models.models_stats import *
+mod_stats       = Stats_query(ns, document_type)
+mod_stats_query = mod_stats.model_stats_query
 
 ### + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + ###
 ### ROUTES
@@ -45,7 +47,7 @@ class Dso_infos_(Resource):
   """
 
   @ns.doc('dso_infos')
-  @ns.expect(query_data_dso_arguments)
+  @ns.expect(query_pag_args, query_data_dso_arguments)
   # @jwt_optional
   @jwt_optional_sd
   @ns.doc(params={'doc_id': 'the dataset output oid'})
@@ -98,6 +100,57 @@ class Dso_infos_(Resource):
 
     return results, response_code
 
+
+@ns.route("/get_one_stats/<string:doc_id>")
+class Dso_stats_(Resource):
+  
+  @ns.doc('dso_stats')
+  @ns.expect([mod_stats_query], query_data_stats_arguments)
+  # @jwt_optional
+  @jwt_optional_sd
+  @ns.doc(params={'doc_id': 'the dataset input oid'})
+  def post(self, doc_id):
+    """
+    post stat request from a specific dso in db
+
+    :param doc_id : dsi's oid <doc_id>
+
+    >
+      --- needs   : dso's oid <doc_id>
+      --- query args : search_for / search_in / only_stats / ...
+      >>> returns : dso stats
+
+    """
+    ### DEBUGGING
+    print()
+    print("-+- "*40)
+    log.debug( "ROUTE class : %s", self.__class__.__name__ )
+
+    ### DEBUG check
+    log.debug ("payload : \n{}".format(pformat(ns.payload)))
+
+    ### check client identity and claims
+    claims = returnClaims()
+    log.debug("claims : \n %s", pformat(claims) )
+
+
+    ### query db from generic function 		
+    query_args = query_data_stats_arguments.parse_args(request)
+    log.debug("query_args : \n%s", pformat(query_args) )
+    results, response_code	= Query_db_stats (
+      ns, 
+      document_type,
+      doc_id,
+      claims,
+      query_args,
+      roles_for_complete = ["admin"],
+			payload = ns.payload
+    )
+
+    log.debug("stats results have been retrieved ... " )
+    log.debug("results : \n%s ", pformat(results) )
+
+    return results, response_code
 
 
 @ns.route('/list')

@@ -14,10 +14,10 @@ from pandas.io.json import json_normalize
 from log_config import log, pformat
 log.debug("... _core.queries_db.query_doc.py ..." )
 
-from	bson.objectid 	import ObjectId
-from 	flask_restplus 	import  marshal
+from	bson.objectid  import ObjectId
+from 	flask_restplus import  marshal
 
-from 	. 	import db_dict_by_type, Marshaller
+from 	. import db_dict_by_type, Marshaller
 from 	solidata_api._choices._choices_docs import doc_type_dict
 
 import operator
@@ -79,22 +79,10 @@ def Query_db_doc (
     "is_member_of_team" : False,
     "is_creator" 		: False,
   }
-
-  ### get pagination arguments
-  # log.debug('page_args : \n%s', pformat(page_args) )  
-  # page     = page_args.get('page', 	1 )
-  # per_page = page_args.get('per_page', 5 )
-  # if page != 1 :
-  # 	start_index		= ( page - 1 ) * per_page 
-  # 	end_index 		= start_index + per_page
-  # else : 
-  # 	start_index		= 0
-  # 	end_index 		= per_page	
-  # log.debug('start_index : %s', start_index )  
-  # log.debug('end_index   : %s', end_index )  
+  log.debug('query_resume : \n%s', pformat(query_resume) )  
 
   ### get query arguments
-  log.debug('query_args : \n%s', pformat(query_args) )  
+  # log.debug('query_args : \n%s', pformat(query_args) )  
   only_f_data		= query_args.get('only_f_data',		False )
   only_stats		= query_args.get('only_stats',		False )
   # slice_f_data	= query_args.get('slice_f_data',	True )

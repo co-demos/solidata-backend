@@ -231,6 +231,7 @@ class Marshaller :
 
 from .query_utils import *
 from .query_doc import *
+from .query_stats import *
 from .query_list import *
 from .query_delete import *
 from .query_update import *

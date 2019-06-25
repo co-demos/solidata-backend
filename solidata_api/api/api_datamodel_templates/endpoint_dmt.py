@@ -15,7 +15,7 @@ ns = Namespace('infos', description='Datamodel templates : request and list all 
 
 ### import models 
 from solidata_api._models.models_datamodel_template import *  
-mod_doc				= Dmt_infos(ns)
+mod_doc        = Dmt_infos(ns)
 model_doc_out		= mod_doc.mod_complete_out
 model_doc_guest_out	= mod_doc.model_guest_out
 model_doc_min		= mod_doc.model_minimum
@@ -44,6 +44,7 @@ class Dmt_infos_(Resource):
       
   @ns.doc('dmt_infos')
   # @ns.expect(query_arguments)
+  # @ns.expect(pagination_arguments, query_data_arguments)
   # @jwt_optional
   @jwt_optional_sd
   @ns.doc(params={'doc_id': 'the dmt oid'})
@@ -70,8 +71,8 @@ class Dmt_infos_(Resource):
 
 
     ### query db from generic function 		
-    query_args				= query_data_arguments.parse_args(request)
-    page_args				= pagination_arguments.parse_args(request)
+    query_args = query_data_arguments.parse_args(request)
+    page_args  = pagination_arguments.parse_args(request)
     results, response_code	= Query_db_doc (
       ns, 
       models,
@@ -119,13 +120,13 @@ class Dmt_List(Resource):
 
 
     ### check client identity and claims
-    claims 				= get_jwt_claims() 
+    claims = get_jwt_claims() 
     log.debug("claims : \n %s", pformat(claims) )
 
 
     ### query db from generic function 		
-    query_args				= query_arguments.parse_args(request)
-    page_args				= pagination_arguments.parse_args(request)
+    query_args = query_arguments.parse_args(request)
+    page_args  = pagination_arguments.parse_args(request)
     results, response_code	= Query_db_list (
       ns, 
       models,

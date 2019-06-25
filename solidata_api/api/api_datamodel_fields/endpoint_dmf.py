@@ -44,6 +44,7 @@ class Dmf_infos_(Resource):
   
   @ns.doc('dmf_infos')
   # @ns.expect(query_arguments)
+  # @ns.expect(pagination_arguments, query_data_arguments)
   # @jwt_optional
   @jwt_optional_sd
   @ns.doc(params={'doc_id': 'the dmf oid'})
@@ -70,8 +71,8 @@ class Dmf_infos_(Resource):
 
 
     ### query db from generic function 		
-    query_args				= query_data_arguments.parse_args(request)
-    page_args				= pagination_arguments.parse_args(request)
+    query_args      = query_data_arguments.parse_args(request)
+    page_args       = pagination_arguments.parse_args(request)
     results, response_code	= Query_db_doc (
       ns, 
       models,

@@ -474,8 +474,11 @@ def GetFData( document_type,
   """
   ### get pagination arguments
   log.debug('page_args : \n%s', pformat(page_args) )  
-  page     = page_args.get('page', 	1 )
-  per_page = page_args.get('per_page', 5 )
+  page         = page_args.get('page', 	1 )
+  per_page     = page_args.get('per_page', 5 )
+  sort_by      = page_args.get('sort_by', None )
+  descending   = page_args.get('descending', False )
+  shuffle_seed = page_args.get('shuffle_seed',	None )
   if page != 1 :
     start_index = ( page - 1 ) * per_page 
     end_index   = start_index + per_page
@@ -491,9 +494,9 @@ def GetFData( document_type,
   # only_stats     = query_args.get('only_stats', False )
   # q_normalize    = query_args.get('normalize', False )
   slice_f_data     = query_args.get('slice_f_data', True )
-  sort_by          = query_args.get('sort_by', None )
-  descending       = query_args.get('descending', False )
-  shuffle_seed     = query_args.get('shuffle_seed',	None )
+  # sort_by          = query_args.get('sort_by', None )
+  # descending       = query_args.get('descending', False )
+  # shuffle_seed     = query_args.get('shuffle_seed',	None )
   map_list         = query_args.get('map_list',	False )
   get_filters      = query_args.get('get_filters', False )
   fields_to_return = query_args.get('fields_to_return',	None )

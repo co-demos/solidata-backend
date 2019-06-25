@@ -69,7 +69,7 @@ class Dsi_edit(Resource):
 		log.debug ("payload : \n{}".format(pformat(ns.payload)))
 
 		### check client identity and claims
-		claims 			= get_jwt_claims() 
+		claims = get_jwt_claims() 
 		log.debug("claims : \n %s", pformat(claims) )
 
 		### update doc in DB
