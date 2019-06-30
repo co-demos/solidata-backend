@@ -144,7 +144,8 @@ class Login(Resource):
     log.debug("raw_jwt : \n %s", pformat(raw_jwt) )
 
     ### retrieve current user identity from refresh token
-    claims = get_jwt_claims() 
+    # claims = get_jwt_claims() 
+    claims = returnClaims()
     log.debug("claims : \n %s", pformat(claims) )
     
 

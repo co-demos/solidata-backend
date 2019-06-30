@@ -87,13 +87,14 @@ class TagCreate(Resource):
     log.debug ("payload : \n{}".format(pformat(ns.payload)))
 
     ### check client identity and claims
-    claims 			= get_jwt_claims() 
+    # claims = get_jwt_claims() 
+    claims = returnClaims()
     log.debug("claims : \n %s", pformat(claims) )
     
     # user_id 		= get_jwt_identity() ### get the oid as str
     # log.debug('user_identity from jwt : \n%s', user_identity )  
-    user_id 		= claims["_id"]
-    user_oid		= ObjectId(user_id)
+    user_id  = claims["_id"]
+    user_oid = ObjectId(user_id)
     # user_role 		= claims["auth"]["role"]
 
     ### get data from form and preload for marshalling

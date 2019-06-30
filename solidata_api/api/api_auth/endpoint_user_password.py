@@ -64,14 +64,14 @@ class PasswordForgotten(Resource):
     if user is None and payload_email != "anonymous" : 
 
       return { 	
-            "msg" : "email {} doesn't exists in db".format(payload_email) 
-          }, 401
+        "msg" : "email {} doesn't exists in db".format(payload_email) 
+      }, 401
 
     if user :  
       
       ### marshal user's info 
-      user_light				= marshal( user , model_access_user)
-      user_light["_id"]		= str(user["_id"])
+      user_light = marshal( user , model_access_user)
+      user_light["_id"] = str(user["_id"])
       user_light["renew_pwd"] = True
       log.debug("user_light : \n %s", pformat(user_light)) 
 
@@ -95,9 +95,9 @@ class PasswordForgotten(Resource):
         send_email( "Reset your password", payload_email, template=html )
       
       return { 
-            "msg" 		: "email sent to {} with a link containing the renew_pwd_access_token to refresh your password".format(payload_email),
-            "expires" : str(expires),
-          }, 200
+        "msg" 		: "email sent to {} with a link containing the renew_pwd_access_token to refresh your password".format(payload_email),
+        "expires" : str(expires),
+      }, 200
 
 
 
@@ -164,10 +164,10 @@ class ResetPassword(Resource):
     log.info("tokens : \n %s", pformat(tokens))
 
     return { 
-          "msg" 		: "you are now allowed to enter/POST your new password with the reset_pwd_access_token sent, you have {} to renew your password".format(expires), 
-          "expires"	: str(expires),
-          "tokens" 	: tokens
-        }, 200
+      "msg" 		: "you are now allowed to enter/POST your new password with the reset_pwd_access_token sent, you have {} to renew your password".format(expires), 
+      "expires"	: str(expires),
+      "tokens" 	: tokens
+    }, 200
 
   
   @fresh_jwt_required

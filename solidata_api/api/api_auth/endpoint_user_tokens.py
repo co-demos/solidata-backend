@@ -77,7 +77,8 @@ class GetTokenClaims(Resource) :
     log.debug("raw_jwt : \n %s", pformat(raw_jwt) )
 
     ### retrieve current token claims from token
-    claims = get_jwt_claims() 
+    # claims = get_jwt_claims() 
+    claims = returnClaims()
     log.debug("claims : \n %s", pformat(claims) )
 
     return {
@@ -110,21 +111,22 @@ class ConfirmAccessToken(Resource) :
     # log.debug ("payload : \n{}".format(pformat(ns.payload)))
 
     ### retrieve current user identity from refresh token
-    claims 				= get_jwt_claims() 
+    # claims = get_jwt_claims() 
+    claims = returnClaims()
     log.debug("claims : \n %s", pformat(claims) )
 
     user_id = claims["_id"]
 
     if user_id == None :
       return {
-            "msg" 	: "user not found " , 
-          }, 401
+        "msg" 	: "user not found " , 
+      }, 401
     
     else : 
       return {
-            "msg" 	: "user found " , 
-            "data"	: claims ,
-          }, 200
+        "msg" 	: "user found " , 
+        "data"	: claims ,
+      }, 200
 
 
 @ns.doc(security='apikey')

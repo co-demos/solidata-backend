@@ -271,7 +271,8 @@ class Confirm_email(Resource):
     log.debug( "user_identity : \n %s", user_identity ) 
 
     ### check client identity and claims
-    claims 				= get_jwt_claims() 
+    # claims = get_jwt_claims() 
+    claims = returnClaims()
     log.debug("claims : \n %s", pformat(claims) )
 
 

@@ -5,12 +5,14 @@ chardet==3.0.4
 Click==7.0
 cloudpickle==0.6.1
 colorlog==4.0.2
+csvalidate==1.1.1
 dask==1.1.0
 distributed==1.25.2
 dnspython==1.16.0
 eventlet==0.24.1
 Flask==1.0.2
 Flask-Cors==3.0.7
+Flask-CSV==1.2.0
 Flask-JWT-Extended==3.15.0
 Flask-Mail==0.9.1
 Flask-PyMongo==2.2.0
@@ -29,6 +31,7 @@ jsonschema==2.6.0
 llvmlite==0.27.0
 locket==0.2.0
 MarkupSafe==1.1.0
+marshmallow==2.19.5
 monotonic==1.5
 msgpack==0.6.0
 numba==0.42.0

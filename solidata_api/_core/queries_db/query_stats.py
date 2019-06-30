@@ -51,7 +51,7 @@ def Query_db_stats (
   # marshaller = Marshaller(ns, models)
 
   ### default values
-  not_filtered = True
+  # not_filtered = True
   db_collection = db_dict_by_type[document_type]
   document_type_full = doc_type_dict[document_type]
   user_id = user_oid = None
@@ -170,7 +170,9 @@ def Query_db_stats (
               field : { 
                 "$filter" : {
                     "input": { 
-                      "$split": ["${}".format(field), unwind_separator]  
+                      "$split": [
+                        "${}".format(field), unwind_separator
+                      ]  
                     },
                     "as": "str",
                     "cond": { "$ne" : [ "$$str", "" ] }

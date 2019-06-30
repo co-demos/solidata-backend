@@ -808,13 +808,13 @@ agg_sum_type = fields.String(
   default     = "count_items",
   required		= False,
 )
-agg_level_group = fields.Integer(
-  description = "level of grouping aggregation nquery",
-  attribute		= "agg_level",
-  example			= 0,
-  default			= 0,
-  required		= False,
-)
+# agg_level_group = fields.Integer(
+#   description = "level of grouping aggregation nquery",
+#   attribute		= "agg_level",
+#   example			= 0,
+#   default			= 0,
+#   required		= False,
+# )
 # agg_min = fields.Boolean(
 #   description = "append min value for this aggregation group",
 #   attribute		= "agg_min",
