@@ -26,6 +26,7 @@ class RequestParserBuilder :
 
   def __init__(	self, 
       add_pagination = False,
+      add_sorting = False,
       add_slice_query = True,
       add_queries = False,
       add_data_query = False,
@@ -54,7 +55,7 @@ class RequestParserBuilder :
         required=False, 
         default=1, 
         help='Page number',
-        # location = 'values'
+        location = 'args'
       )
       self.baseParser.add_argument('per_page', 
         type=int, 
@@ -62,19 +63,23 @@ class RequestParserBuilder :
         choices=[0, 1, 2, 3, 4, 5, 10, 20, 25, 50, 75, 100, 200, 300, 400, 500],
         default=10, 
         help='Results per page ( get all results if 0 )',
-        # location = 'values'
+        location = 'args'
       )
+
+    if add_sorting : 
+
       self.baseParser.add_argument('sort_by', 
         type=str, 
         required=False, 
         help='sort data in document according to this field in records',
-        # location = 'values'
+        location = 'args'
       )
       self.baseParser.add_argument('descending', 
         type=inputs.boolean, 
         required=False, 
+        default = True,
         help='sort data in document ascending/descending',
-        # location = 'values'
+        location = 'args'
       )
 
     if add_slice_query : 
@@ -223,16 +228,16 @@ class RequestParserBuilder :
         action='append',
         type=str, 
         required=False, 
-        help='find data in document matching this kind of string : <field_name>__<valueToSearch>',
+        help='find data in document matching this format : <field_name>__<valueToSearch>',
         location = 'args'
       )
-      self.baseParser.add_argument('search_tags', 
-        action='split',
-        type=str, 
-        required=False, 
-        help='find documents matching this list of tags strings (separated by commas)',
-        location = 'args'
-      )
+      # self.baseParser.add_argument('search_tags', 
+      #   action='split',
+      #   type=str, 
+      #   required=False, 
+      #   help='find documents matching this list of tags strings (separated by commas)',
+      #   location = 'args'
+      # )
       self.baseParser.add_argument('search_int', 
         action='append',
         type=int, 
@@ -418,11 +423,15 @@ query_data_arguments = q_data.get_parser
 q_files = RequestParserBuilder( add_files=True )
 file_parser	= q_files.get_parser
 
-q_pagination = RequestParserBuilder( add_pagination=True )
+q_pagination = RequestParserBuilder( 
+  add_pagination=True,
+  add_sorting=True,
+)
 pagination_arguments = q_pagination.get_parser
 
 q_pag_args = RequestParserBuilder(
-  add_pagination=True, 
+  add_pagination=True,
+  add_sorting=True,
   add_queries=True,
   add_shuffle=True, 
 )
@@ -457,6 +466,7 @@ query_data_dso_arguments = q_data_dso.get_parser
 ### STATS REQUEST ARGS
 q_data_stats = RequestParserBuilder(
   # add_pagination=True, 
+  add_sorting=True,
   add_slice_query=False, 
   add_data_query=True, 
   # add_stats_query=True, 

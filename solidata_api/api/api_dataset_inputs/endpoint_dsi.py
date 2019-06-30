@@ -108,7 +108,7 @@ class Dsi_stats_(Resource):
   # @jwt_optional
   @jwt_optional_sd
   @ns.doc(params={'doc_id': 'the dataset input oid'})
-  def put(self, doc_id):
+  def post(self, doc_id):
     """
     post stat request from a specific dsi in db
 
@@ -124,6 +124,8 @@ class Dsi_stats_(Resource):
     print()
     print("-+- "*40)
     log.debug( "ROUTE class : %s", self.__class__.__name__ )
+
+    document_stat_type = "dsi_doc"
 
     ### check client identity and claims
     claims = returnClaims()
@@ -145,6 +147,7 @@ class Dsi_stats_(Resource):
       claims,
       query_args,
       doc_id = doc_id,
+      is_one_stat = True,
       roles_for_complete = ["admin"],
 			payload = ns.payload
     )
@@ -206,4 +209,57 @@ class Dsi_List(Resource):
     log.debug("results have been retrieved ... " )
     # log.debug("results : \n%s ", pformat(results) )
     
+    return results, response_code
+
+
+@ns.route("/list_stats")
+class Dsi_list_stats_(Resource):
+  
+  @ns.doc('dsi_list_stats')
+  # @ns.expect(query_data_stats_arguments)
+  @ns.expect( [mod_stats_query], query_data_stats_arguments)
+  # @ns.expect({ "stats_query": [mod_stats_query] }, query_data_stats_arguments)
+  # @ns.expect( [[mod_stats_query] })
+  # @jwt_optional
+  @jwt_optional_sd
+  def post(self):
+    """
+    post stat request from a list of dsi in db
+
+    >
+      --- query args : search_for / search_in / only_stats / ...
+      >>> returns : dsi list stats data
+
+    """
+    ### DEBUGGING
+    print()
+    print("-+- "*40)
+    log.debug( "ROUTE class : %s", self.__class__.__name__ )
+
+    ### check client identity and claims
+    claims = returnClaims()
+    log.debug("claims : \n %s", pformat(claims) )
+
+    # log.debug("request : \n%s", pformat(request.__dict__) )
+    log.debug("request.args : \n%s", pformat(request.args) )
+
+    ### DEBUG check payload
+    log.debug ("ns.payload : \n{}".format(pformat(ns.payload)))
+
+    ### query db from generic function 		
+    query_args = query_data_stats_arguments.parse_args(request)
+    log.debug("query_args : \n%s", pformat(query_args) )
+
+    results, response_code	= Query_db_stats (
+      ns, 
+      document_type,
+      claims,
+      query_args,
+      roles_for_complete = ["admin"],
+			payload = ns.payload
+    )
+
+    log.debug("stats results have been retrieved ... " )
+    log.debug("results : \n%s ", pformat(results) )
+
     return results, response_code

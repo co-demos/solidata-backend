@@ -157,9 +157,11 @@ db_dict_by_type = {
 	"prj" : mongo_projects,
 	"dmt" : mongo_datamodels_templates,
 	"dmf" : mongo_datamodels_fields,
+
 	"dsi" : mongo_datasets_inputs,
 	"dsi_doc" : mongo_datasets_inputs_docs,
 	"dsr" : mongo_datasets_raws,
+  
 	"rec" : mongo_recipes,
 
 	"dso" : mongo_datasets_outputs,

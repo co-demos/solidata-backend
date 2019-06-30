@@ -815,41 +815,41 @@ agg_level_group = fields.Integer(
   default			= 0,
   required		= False,
 )
-agg_min = fields.Boolean(
-  description = "append min value for this aggregation group",
-  attribute		= "agg_min",
-  example			= True,
-  default			= True,
-  required		= False,
-)
-agg_max = fields.Boolean(
-  description = "append max value for this aggregation group",
-  attribute		= "agg_max",
-  example			= True,
-  default			= True,
-  required		= False,
-)
-agg_total = fields.Boolean(
-  description = "append total value for this aggregation group",
-  attribute		= "agg_total",
-  example			= True,
-  default			= True,
-  required		= False,
-)
+# agg_min = fields.Boolean(
+#   description = "append min value for this aggregation group",
+#   attribute		= "agg_min",
+#   example			= True,
+#   default			= True,
+#   required		= False,
+# )
+# agg_max = fields.Boolean(
+#   description = "append max value for this aggregation group",
+#   attribute		= "agg_max",
+#   example			= True,
+#   default			= True,
+#   required		= False,
+# )
+# agg_total = fields.Boolean(
+#   description = "append total value for this aggregation group",
+#   attribute		= "agg_total",
+#   example			= True,
+#   default			= True,
+#   required		= False,
+# )
 agg_needs_unwind = fields.Boolean(
   description = "append total value for this aggregation group",
   attribute		= "agg_needs_unwind",
   example			= True,
-  default			= True,
+  default			= False,
   required		= False,
 )
 stats_query_fields		= {
   "agg_field" : agg_field,
   "agg_sum_type" : agg_sum_type,
   "agg_level_group" : agg_level_group,
-  "agg_min" : agg_min,
-  "agg_max" : agg_max,
-  "agg_total" : agg_total,
+  # "agg_min" : agg_min,
+  # "agg_max" : agg_max,
+  # "agg_total" : agg_total,
   "agg_needs_unwind" : agg_needs_unwind,
 }
 
