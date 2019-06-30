@@ -617,9 +617,9 @@ f_is_required		= fields.Boolean(
   default			= False,
 )
 
-f_coll_header_val		= fields.String(
-  description		= "columns headers value",
-  attribute		= "f_coll_header_val",
+f_coll_header_val = fields.String(
+  description = "columns headers value",
+  attribute   = "f_coll_header_val",
 )
 f_coll_header_text		= fields.String(
   description		= "columns headers text",
@@ -631,43 +631,43 @@ f_coll_header_text		= fields.String(
 # 										attribute		= "f_coll_headers",	
 # 										default			= []
 # 									)
-f_data 					= fields.Raw(
-  description		= "raw data about a document",
-  attribute		= "f_data",
-  example			= "raw data",
-  default			= 'a new raw data',
-  required		= True,
+f_data        = fields.Raw(
+  description = "raw data about a document",
+  attribute   = "f_data",
+  example     = "raw data",
+  default     = 'a new raw data',
+  required    = True,
 )
 
-f_basics_tag 		= {
+f_basics_tag = {
   "f_code" 		: f_code,
   "f_object" 		: f_object,
   "f_comments" 	: f_comments,
 }
-f_basics_dmf 		= {
-  "f_code" 		: f_code,
-  "f_object" 		: f_object,
-  "f_type" 		: f_type,
-  "f_comments" 	: f_comments,
+f_basics_dmf = {
+  "f_code"     : f_code,
+  "f_object"   : f_object,
+  "f_type"     : f_type,
+  "f_comments" : f_comments,
   "f_is_required" : f_is_required,
 }
-f_headers_ds 		= {
-  "f_coll_header_val"		: f_coll_header_val,
-  "f_coll_header_text"	: f_coll_header_text,
+f_headers_ds = {
+  "f_coll_header_val"  : f_coll_header_val,
+  "f_coll_header_text" : f_coll_header_text,
 }
-f_headers_dso 		= {
-  "f_title"				: f_title,
-  "f_code"				: f_code,
-  "f_type"				: f_type,
-  "open_level_show" 		: open_level_show,
-  "oid_dmf" 				: oid_dmf,
+f_headers_dso = {
+  "f_title"         : f_title,
+  "f_code"          : f_code,
+  "f_type"          : f_type,
+  "open_level_show" : open_level_show,
+  "oid_dmf"         : oid_dmf,
 }
 
-f_basics_rec 		= {
-  "f_code" 		: f_code,
-  "f_object" 		: f_object,
-  "f_comments" 	: f_comments,
-  "field_raw" 	: field_raw,
+f_basics_rec = {
+  "f_code"     : f_code,
+  "f_object"   : f_object,
+  "f_comments" : f_comments,
+  "field_raw" : field_raw,
 }
 
 # f_basics_dsi_dsr_dso 		= {
@@ -841,16 +841,24 @@ agg_needs_unwind = fields.Boolean(
   attribute		= "agg_needs_unwind",
   example			= True,
   default			= False,
-  required		= False,
+  required		= True,
+)
+agg_unwind_separator = fields.String(
+  description = "separator for tags-like string contents",
+  attribute		= "agg_unwind_separator",
+  example			= "-",
+  default			= "-",
+  required		= True,
 )
 stats_query_fields		= {
   "agg_field" : agg_field,
   "agg_sum_type" : agg_sum_type,
-  "agg_level_group" : agg_level_group,
+  # "agg_level_group" : agg_level_group,
   # "agg_min" : agg_min,
   # "agg_max" : agg_max,
   # "agg_total" : agg_total,
   "agg_needs_unwind" : agg_needs_unwind,
+  "agg_unwind_separator" : agg_unwind_separator,
 }
 
 ### + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + ###

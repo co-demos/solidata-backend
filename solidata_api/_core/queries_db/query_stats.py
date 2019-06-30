@@ -103,7 +103,7 @@ def Query_db_stats (
   ### get payload 
   log.debug('payload : \n%s', pformat(payload) )  
 
-  ### 
+  ### starting dict for matching parrt of aggregation
   q_match = { "$match" : {} }
 
   ### build basic info for db query
@@ -141,6 +141,8 @@ def Query_db_stats (
 
     
 
+    ### AGGREGATION ###
+    ### - - - - - - ### 
 
     ### build query pipelines for stats
 
@@ -152,48 +154,86 @@ def Query_db_stats (
     q_aggregate.append(q_match)
     
     # $ grouping x payload
-    payload_sorted = sorted(payload, key=lambda i:i["agg_level_group"])
+    # payload_sorted = sorted(payload, key=lambda i:i["agg_level_group"])
     q_complex_stat = len(payload) > 1
     q_sorting = []
 
-    # $ grouping
+    # $ unwind - loop payload looking for unwindders
+    q_unwindders = [] 
+    for p in payload : 
+      field = p["agg_field"]
+      needs_unwind = p["agg_needs_unwind"]
+      unwind_separator = p["agg_unwind_separator"]
+      if needs_unwind : 
+        field_unwindder = [
+          { "$addFields": { 
+              field : { 
+                "$filter" : {
+                    "input": { 
+                      "$split": ["${}".format(field), unwind_separator]  
+                    },
+                    "as": "str",
+                    "cond": { "$ne" : [ "$$str", "" ] }
+                }
+              }
+            }},
+          { "$unwind" : "${}".format(field) }
+        ]
+        q_unwindders.append(field_unwindder)
+    
+    ### $ unwind - append unwindders to aggregation pipelinne
+    log.debug( "unwindders : \n%s", pformat(q_unwindders) )
+    if len(q_unwindders) > 0 : 
+      q_aggregate += q_unwindders
+
+    # $ grouping simple
     if q_complex_stat == False : 
 
-      q_group_block = { "$group" : {
-        "_id" : "${}".format( payload[0]["agg_field"] ),
-        "count" : { "$sum": 1 }
-      } }
-      q_sort = { "$sort" : { "count" : sort_order } }
+      q_group_block = { 
+        "$group" : {
+          "_id" : "${}".format( payload[0]["agg_field"] ),
+          "count" : { "$sum": 1 }
+        }
+      }
+      q_sort = { 
+        "$sort" : { "count" : sort_order } 
+      }
     
       q_aggregate.append(q_group_block)
       q_sorting.append(q_sort)
   
+    # $ grouping complex
     else : 
-
       field_0 = payload[0]["agg_field"]
       field_1 = payload[1]["agg_field"]
 
+      # basic complex aggregation
       q_group_block = [
       { "$group": {
           "_id": { 
-            field_0: "${}".format(field_0) , 
+            field_0: "${}".format(field_0), 
             field_1: "${}".format(field_1) 
-          } , 
+          }, 
           "count": { "$sum": 1 }
         }
-      },
+      }]
+
+      q_group_block_1 = [
       { "$group": {
           "_id": "$_id.{}".format(field_0), 
           "subcounts": { 
             "$addToSet": { 
-              field_1: "$_id.{}".format(field_1), 
+              "tag_name" : "$_id.{}".format(field_1), 
+              "tag_code" : field_1,
               "count": "$count" 
             }, 
-            "count": { "$sum": 1 }
           }
         }
       }]
 
+      q_group_block += q_group_block_1
+
+      ### append groupers to aggregation pipelinne
       q_aggregate += q_group_block
 
       q_sorting = [
@@ -211,31 +251,37 @@ def Query_db_stats (
     ### check and run pipeline
     log.debug( "q_aggregate : \n%s", pformat(q_aggregate) )
     results = db_collection.aggregate(q_aggregate)
-    message	= "stats required for this {}".foramt(document_type_full)
+    message	= "stats required for this {}".format(document_type_full)
     document_out = list(results)
 
 
 
 
   else : 
-    message	= "this {} doesn't exist".foramt(document_type_full)
+    message	= "this {} doesn't exist".format(document_type_full)
     response_code = 401
-
 
   log.debug('query_resume : \n%s', pformat(query_resume)) 
 
+
   ### return response
   return {
-    "msg" 	  : message,
-    "data"	  : document_out,
-    "query"	  : query_resume,
+    "msg"   : message,
+    "data"  : document_out,
+    "query" : query_resume,
   }, response_code
 
+
+
+
+
+
   """
-  ### example pipeline stats
+  ### examples pipeline aggregation stats 
 
 
-  ### LOCALLY 
+  ### LOCALLY ### 
+  ### - - - - ###
 
   db.getCollection('datasets_outputs_docs').aggregate([
     { $match: { "oid_dso" : ObjectId("5c8942a48626a059decaa34a") } },
@@ -268,19 +314,19 @@ def Query_db_stats (
   ### - - - - - - - -  ###
 
   ### SIMPLE COUNT
-  db.getCollection('datasets_outputs_docs').aggregate([
+    db.getCollection('datasets_outputs_docs').aggregate([
       { $match: { "oid_dso" : ObjectId("5c89636d328ed70609be03ab") } },
       { $group: {
           _id: "$source", 
           total: { $sum: 1 }
         }
       },
-    { $sort : { "count" : 1 }  },
-  ])
+      { $sort : { "count" : 1 }  },
+    ])
 
 
   ### COMPLEX COUNT / UNIQUES
-  db.getCollection('datasets_outputs_docs').aggregate([
+    db.getCollection('datasets_outputs_docs').aggregate([
       { $match: { "oid_dso": ObjectId("5c89636d328ed70609be03ab") } },
       { $group: {
           _id: { "source": "$source", "ville structure": "$ville structure" } , 
@@ -293,37 +339,69 @@ def Query_db_stats (
           count: { $sum: 1 }
         }
       },
+      { $sort : { "count" : -1 }  },
+      { $sort : { "subcounts.count" : -1 }  },
+    ])
+
+
+  ### COMPLEX COUNT / COUNT AND UNWIND TAGS
+
+    db.getCollection('datasets_outputs_docs').aggregate([
+      { $match: { "oid_dso": ObjectId("5c89636d328ed70609be03ab") } },
+      { $addFields: { "coding services" : { 
+          $filter: {
+            input: { $split: ["$coding services", "-"]  },
+            as: "str",
+            cond: { $ne : [ "$$str", "" ] }
+          }
+        }
+      }},
+      { $unwind : "$coding services" },
+      { $group: {
+          _id: { "source" : "$source", "coding services": "$coding services" },
+          "coding services": { "$push": "$coding services" } , 
+          count: { $sum: 1 }
+        }
+      },
+      { $group: {
+            "_id": "$_id.source", 
+            "subcounts": { $addToSet: { "coding services": "$_id.coding services", "count" : "$count"  } }, 
+          }
+      },
     { $sort : { "count" : -1 }  },
     { $sort : { "subcounts.count" : -1 }  },
   ])
 
 
-  ### COMPLEX COUNT / COUNT AND UNWIND TAGS
 
   db.getCollection('datasets_outputs_docs').aggregate([
-      { $match: { "oid_dso": ObjectId("5c89636d328ed70609be03ab") } },
-      { $addFields: { "coding services" : { 
-              $filter: {
-                  input: { $split: ["$coding services", "-"]  },
-                  as: "str",
-                  cond: { $ne : [ "$$str", "" ] }
-              }
-          }
-      }},
-      { $unwind : "$coding services" },
-      { $group: {
-              _id: { "source" : "$source", "coding services": "$coding services" },
-              "coding services": { "$push": "$coding services" } , 
-              count: { $sum: 1 }
-          }
-      },
-      { $group: {
-              "_id": "$_id.source", 
-              "subcounts": { $addToSet: { "coding services": "$_id.coding services", "count" : "$count"  } }, 
-          }
-      },
-    { $sort : { "count" : -1 }  },
+    { $match: { "oid_dso": ObjectId("5c89636d328ed70609be03ab") } },
+    { $addFields: { "coding services" : { 
+        $filter: {
+          input: { $split: ["$coding services", "-"]  },
+          as: "str",
+          cond: { $ne : [ "$$str", "" ] }
+        }
+      }
+    }},
+    { $unwind : "$coding services" },
+    { $group: {
+        _id: { "source" : "$source", "coding services": "$coding services" },
+        "coding services": { $push: "$coding services" } , 
+        count: { $sum: 1 }
+      }
+    },
+    { $group: {
+        _id: "$_id.source", 
+          subcounts: { $addToSet: { 
+            "tag_name": "$_id.coding services", 
+            "tag_code": "coding services",                 
+            count : "$count"  } }, 
+        }
+      }
+    },
     { $sort : { "subcounts.count" : -1 }  },
+
   ])
 
 
