@@ -67,10 +67,10 @@ def Query_db_list (
 
   ### sum up all query arguments
   query_resume = {
-    "document_type"  : document_type,  
+    "document_type" : document_type,  
     "user_id"       : user_id,
-    "user_role"      : user_role,
-    "page_args"      : page_args,
+    "user_role"     : user_role,
+    "page_args"     : page_args,
     "query_args"    : query_args,
   }
   
@@ -89,13 +89,13 @@ def Query_db_list (
   log.debug('query_args : \n%s', pformat(query_args) )  
   # q_title     = query_args.get('q_title',     None )
   # q_description = query_args.get('q_description',   None )
-  q_search_for  = query_args.get('search_for',     None )
-  q_oid_list    = query_args.get('oids',      None )
-  # q_oid_tags  = query_args.get('tags',      None )
+  q_search_for  = query_args.get('search_for', None )
+  q_oid_list    = query_args.get('oids',       None )
+  # q_oid_tags  = query_args.get('tags',       None )
   q_only_stats  = query_args.get('only_stats',    False )
   q_ignore_team = query_args.get('ignore_teams',  False )
-  q_pivot       = query_args.get('pivot_results',  False )
-  q_normalize   = query_args.get('normalize',  False )
+  q_pivot       = query_args.get('pivot_results', False )
+  q_normalize   = query_args.get('normalize',     False )
 
 
   ### pipelines for basic query
@@ -139,14 +139,13 @@ def Query_db_list (
   #   pipe_concat.append(pipe_description)
 
   ### search by string in indexed fields 
-  if q_search_for != None : 
-    if q_search_for != [] :
-      log.debug('q_search_for : %s', q_search_for) 
-      do_query_pipe   = True
-      search_words    = [ '\"' + word + '\"' for word in search_words ]
-      pipe_search_for = { '$text' : { '$search' : u' '.join(search_words) } }
-      pipe_concat.append(pipe_search_for)
-      log.debug('pipe_concat + search_for: %s', pipe_concat) 
+  if q_search_for != None and q_search_for != [] :
+    log.debug('q_search_for : %s', q_search_for) 
+    do_query_pipe   = True
+    search_words    = [ '\"' + word + '\"' for word in search_words ]
+    pipe_search_for = { '$text' : { '$search' : u' '.join(search_words) } }
+    pipe_concat.append(pipe_search_for)
+    log.debug('pipe_concat + search_for: %s', pipe_concat) 
 
   ### build query
   if do_query_pipe : 

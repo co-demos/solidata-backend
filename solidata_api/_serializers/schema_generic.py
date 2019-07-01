@@ -839,7 +839,7 @@ agg_sum_type = fields.String(
 agg_needs_unwind = fields.Boolean(
   description = "append total value for this aggregation group",
   attribute		= "agg_needs_unwind",
-  example			= True,
+  example			= False,
   default			= False,
   required		= True,
 )

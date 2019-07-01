@@ -217,13 +217,13 @@ class RequestParserBuilder :
         help='find data in documents matching this string in records',
         location = 'args'
       )
-      self.baseParser.add_argument('search_in', 
-        action='append',
-        type=str, 
-        required=False, 
-        help='find data in document matching this string as field in records',
-        location = 'args'
-      )
+      # self.baseParser.add_argument('search_in', 
+      #   action='append',
+      #   type=str, 
+      #   required=False, 
+      #   help='find data in document matching this string as field in records',
+      #   location = 'args'
+      # )
       self.baseParser.add_argument('search_filters', 
         action='append',
         type=str, 
@@ -238,20 +238,20 @@ class RequestParserBuilder :
       #   help='find documents matching this list of tags strings (separated by commas)',
       #   location = 'args'
       # )
-      self.baseParser.add_argument('search_int', 
-        action='append',
-        type=int, 
-        required=False, 
-        help='find data in document matching this integer in records',
-        location = 'args'
-      )
-      self.baseParser.add_argument('search_float', 
-        action='append',
-        type=float, 
-        required=False, 
-        help='find data in document matching this float in records',
-        location = 'args'
-      )
+      # self.baseParser.add_argument('search_int', 
+      #   action='append',
+      #   type=int, 
+      #   required=False, 
+      #   help='find data in document matching this integer in records',
+      #   location = 'args'
+      # )
+      # self.baseParser.add_argument('search_float', 
+      #   action='append',
+      #   type=float, 
+      #   required=False, 
+      #   help='find data in document matching this float in records',
+      #   location = 'args'
+      # )
       self.baseParser.add_argument('item_id', 
         action='append',
         type=str, 

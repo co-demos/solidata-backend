@@ -92,7 +92,7 @@ def Query_db_stats (
 
   ### get query arguments
   search_for = query_args.get('search_for', None )
-  search_in = query_args.get('search_in', None )
+  # search_in = query_args.get('search_in', None )
   search_filters = query_args.get('search_filters', None )
   descending = query_args.get('descending', False )
   if descending : 
@@ -151,11 +151,12 @@ def Query_db_stats (
 
     # $ matching
     log.debug( "q_match : \n%s", pformat(q_match) )
-    if search_for != None and search_for != [] and search_for != [''] :
-      search_words = [ "\""+word+"\"" for word in search_for ]
-      q_match["$match"]["$text"] = { 
-        "$search" : u" ".join(search_words) 
-      }
+    # if search_for != None and search_for != [] and search_for != [''] and search_for != '' :
+    #   search_words = [ "\""+word+"\"" for word in search_for ] ### "\"<word>\"" means AND operrator on text search
+    #   q_match["$match"]["$text"] = { 
+    #     "$search" : u" ".join(search_words) 
+    #   }
+    q_match["$match"] = append_search_for_to_query( q_match["$match"], search_for)
     q_match["$match"] = append_filters_to_query( q_match["$match"], search_filters)
     log.debug( "q_match : \n%s", pformat(q_match) )
     
@@ -442,6 +443,44 @@ def Query_db_stats (
     },
     { $sort : { "subcounts.count" : -1 }  },
 
+  ])
+
+
+  db.getCollection('datasets_inputs_docs').aggregate([
+    { $match: {
+        "oid_dsi": ObjectId("5d1932db8626a086eb308e68"),
+        "$text" : { 
+            "$search": "château"
+         },
+        '$and': [
+            {'$or': [
+                {'coding-services': {'$options': '-i','$regex': '.*ACC.*' }}
+             ]}
+        ],
+    }},
+    { $addFields: { "coding-services" : { 
+        $filter: {
+          input: { $split: ["$coding-services", "-"]  },
+          as: "str",
+          cond: { $ne : [ "$$str", "" ] }
+        }
+      }
+    }},
+    { $unwind : "$coding-services" },
+    { $group: {
+        _id: { "sourceur" : "$sourceur", "coding-services": "$coding-services" },
+        "coding-services": { $push: "$coding-services" }, 
+        count: { $sum: 1 }
+     }},
+    { $group: {
+        _id: "$_id.sourceur", 
+          subcounts: { $addToSet: { 
+            "tag_name": "$_id.coding-services", 
+            "tag_code": "coding-services",                 
+            count : "$count"  
+           }}, 
+    }},
+    { $sort : { "subcounts.count" : -1 }  }
   ])
 
 

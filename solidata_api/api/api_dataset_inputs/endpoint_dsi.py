@@ -60,7 +60,7 @@ class Dsi_infos_(Resource):
     >
       --- needs   : dsi's oid <doc_id>
       --- pagination args : page / per_page 
-      --- query args : search_for / search_in / only_stats / ...
+      --- query args : search_for / only_stats / ...
       >>> returns : dsi data
 
     """
@@ -118,7 +118,7 @@ class Dsi_stats_(Resource):
 
     >
       --- needs   : dsi's oid <doc_id>
-      --- query args : search_for / search_in / only_stats / ...
+      --- query args : search_for / only_stats / ...
       >>> returns : dsi data
 
     """
@@ -232,7 +232,7 @@ class Dsi_list_stats_(Resource):
     post stat request from a list of dsi in db
 
     >
-      --- query args : search_for / search_in / only_stats / ...
+      --- query args : search_for / only_stats / ...
       >>> returns : dsi list stats data
 
     """

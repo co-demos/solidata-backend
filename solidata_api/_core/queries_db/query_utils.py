@@ -40,6 +40,19 @@ def weighted(nb):
     return str(nb)
   # return -float('inf') if nb is None else nb
 
+def append_search_for_to_query(query, search_for) : 
+
+  log.debug( "query : \n%s", pformat(query) )
+  log.debug( "search_for : \n%s", pformat(search_for) )
+
+  if search_for != None and search_for != [] and search_for != [''] and search_for != '' :
+    search_for = [ s for s in search_for if s!= "" ]
+    search_words = [ "\""+word+"\"" for word in search_for ] ### "\"<word>\"" means AND operrator on text search
+    query["$text"] = { 
+      "$search" : u" ".join(search_words) 
+    }
+  log.debug( "query : \n%s", pformat(query) )
+  return query
 
 def append_filters_to_query(query, search_filters, splitter="__") : 
   """
@@ -47,7 +60,8 @@ def append_filters_to_query(query, search_filters, splitter="__") :
   """
   filters_dict = {}
 
-  if search_filters != None :
+  if search_filters != None and search_filters != "" and search_filters != [] :
+    search_filters = [ s for s in search_filters if s != "" ]
     for q in search_filters : 
       splitted = q.split(splitter)
       filters_field = { splitted[0] : [] }
@@ -93,16 +107,15 @@ def build_first_term_query(ds_oid, query_args, field_to_query="oid_dso") :
   log.debug('query_args : \n%s', pformat(query_args) )  
 
   search_for     = query_args.get('search_for',     None )
-  search_in      = query_args.get('search_in',     None )
-  search_int     = query_args.get('search_int',     None )
-  search_float   = query_args.get('search_float',   None )
+  # search_in      = query_args.get('search_in',    None )
+  # search_int     = query_args.get('search_int',   None )
+  # search_float   = query_args.get('search_float', None )
   search_tags    = query_args.get('search_tags',   None )
   item_id        = query_args.get('item_id',       None )
   is_complete    = query_args.get('is_complete',   None )
   search_filters = query_args.get('search_filters', [] )
 
 
-  ### TO FINISH ...
   ### append filters
   if search_filters != None and search_filters != [] : 
     query = append_filters_to_query( query, search_filters )
@@ -122,13 +135,14 @@ def build_first_term_query(ds_oid, query_args, field_to_query="oid_dso") :
 
   ### search by content --> collection need to be indexed
   # cf : https://stackoverflow.com/questions/6790819/searching-for-value-of-any-field-in-mongodb-without-explicitly-naming-it
-  if search_for != None and search_for != [] and search_for != [''] :
-    search_words = [ "\""+word+"\"" for word in search_for ]
-    q_search_for = { "$text" : 
-      { "$search" : u" ".join(search_words) } # doable because text fields are indexed at main.py
-    }
-    query.update(q_search_for)
-  
+  # if search_for != None and search_for != [] and search_for != [''] :
+  #   search_words = [ "\""+word+"\"" for word in search_for ]
+  #   q_search_for = { "$text" : 
+  #     { "$search" : u" ".join(search_words) } # doable because text fields are indexed at main.py
+  #   }
+  #   query.update(q_search_for)
+  query = append_search_for_to_query( query, search_for )
+
   return query
 
 def build_projected_fields(ignore_fields_list=[], keep_fields_list=[] ) :
@@ -394,10 +408,10 @@ def search_f_data (data_raw, query_args, not_filtered=True) :
     ### f_data is not a filtered result from direct db query
 
     log.debug('query_args : \n%s', pformat(query_args) )  
-    search_for     = query_args.get('search_for',     None )
-    search_in     = query_args.get('search_in',     None )
-    search_int     = query_args.get('search_int',     None )
-    search_float   = query_args.get('search_float',   None )
+    search_for    = query_args.get('search_for',     None )
+    # search_in     = query_args.get('search_in',     None )
+    # search_int   = query_args.get('search_int',     None )
+    # search_float = query_args.get('search_float',   None )
     item_id       = query_args.get('item_id',       None )
     is_complete   = query_args.get('is_complete',   None )
 
