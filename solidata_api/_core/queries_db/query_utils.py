@@ -14,12 +14,12 @@ from pandas.io.json import json_normalize
 from log_config import log, pformat
 log.debug("... _core.queries_db.query_doc.py ..." )
 
-from  bson.objectid   import ObjectId
-from   flask_restplus   import  marshal
+from bson.objectid   import ObjectId
+from flask_restplus   import  marshal
 
-from   . import db_dict_by_type, Marshaller
-from   solidata_api._choices._choices_docs import doc_type_dict
-from   solidata_api._choices._choices_f_types import dmf_types_list, dmf_type_categ
+from . import db_dict_by_type, Marshaller
+from solidata_api._choices._choices_docs import doc_type_dict
+from solidata_api._choices._choices_f_types import dmf_types_list, dmf_type_categ
 from solidata_api._core.pandas_ops.pd_utils import *
 
 import operator
@@ -93,12 +93,12 @@ def build_first_term_query(ds_oid, query_args, field_to_query="oid_dso") :
   log.debug('query_args : \n%s', pformat(query_args) )  
 
   search_for     = query_args.get('search_for',     None )
-  search_in     = query_args.get('search_in',     None )
+  search_in      = query_args.get('search_in',     None )
   search_int     = query_args.get('search_int',     None )
   search_float   = query_args.get('search_float',   None )
-  search_tags   = query_args.get('search_tags',   None )
-  item_id       = query_args.get('item_id',       None )
-  is_complete   = query_args.get('is_complete',   None )
+  search_tags    = query_args.get('search_tags',   None )
+  item_id        = query_args.get('item_id',       None )
+  is_complete    = query_args.get('is_complete',   None )
   search_filters = query_args.get('search_filters', [] )
 
 
