@@ -16,14 +16,14 @@ ns = Namespace('edit', description='Edit a dmf : ... ')
 ### import models 
 from solidata_api._models.models_updates import * 
 from solidata_api._models.models_datamodel_field import * 
-mod_doc				= Dmf_infos(ns)
-model_doc_out		= mod_doc.mod_complete_out
-model_doc_guest_out	= mod_doc.model_guest_out
-model_doc_min		= mod_doc.model_minimum
-models 				= {
-  "model_doc_out" 		: model_doc_out ,
-  "model_doc_guest_out" 	: model_doc_guest_out ,
-  "model_doc_min" 		: model_doc_min ,
+mod_doc             = Dmf_infos(ns)
+model_doc_out       = mod_doc.mod_complete_out
+model_doc_guest_out = mod_doc.model_guest_out
+model_doc_min       = mod_doc.model_minimum
+models              = {
+  "model_doc_out"       : model_doc_out ,
+  "model_doc_guest_out" : model_doc_guest_out ,
+  "model_doc_min"       : model_doc_min ,
 } 
 
 model_update	= Update_infos(ns, document_type).model_update_generic

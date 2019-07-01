@@ -15,11 +15,11 @@ ns = Namespace('infos', description='Datamodel_fields : request and list all dmf
 
 ### import models 
 from solidata_api._models.models_datamodel_field import * 
-mod_doc				= Dmf_infos(ns)
-model_doc_out		= mod_doc.mod_complete_out
-model_doc_guest_out	= mod_doc.model_guest_out
-model_doc_min		= mod_doc.model_minimum
-models 				= {
+mod_doc             = Dmf_infos(ns)
+model_doc_out       = mod_doc.mod_complete_out
+model_doc_guest_out = mod_doc.model_guest_out
+model_doc_min       = mod_doc.model_minimum
+models = {
   "model_doc_out" 		: model_doc_out ,
   "model_doc_guest_out" 	: model_doc_guest_out ,
   "model_doc_min" 		: model_doc_min ,
@@ -39,6 +39,7 @@ models 				= {
 
 
 
+@ns.doc(security='apikey')
 @ns.route("/get_one/<string:doc_id>")
 class Dmf_infos_(Resource):
   
@@ -92,6 +93,7 @@ class Dmf_infos_(Resource):
     return results, response_code
 
 
+@ns.doc(security='apikey')
 @ns.route('/list')
 class Dmf_List(Resource):
 

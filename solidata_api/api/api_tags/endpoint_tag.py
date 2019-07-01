@@ -15,14 +15,14 @@ ns = Namespace('infos', description='Tags : request and list all tags infos')
 
 ### import models 
 from solidata_api._models.models_tag import * 
-mod_doc				= Tag_infos(ns)
-model_doc_out		= mod_doc.mod_complete_out
-model_doc_guest_out	= mod_doc.model_guest_out
-model_doc_min		= mod_doc.model_minimum
-models 				= {
-  "model_doc_out" 		: model_doc_out ,
-  "model_doc_guest_out" 	: model_doc_guest_out ,
-  "model_doc_min" 		: model_doc_min ,
+mod_doc        = Tag_infos(ns)
+model_doc_out    = mod_doc.mod_complete_out
+model_doc_guest_out  = mod_doc.model_guest_out
+model_doc_min    = mod_doc.model_minimum
+models         = {
+  "model_doc_out"     : model_doc_out ,
+  "model_doc_guest_out"   : model_doc_guest_out ,
+  "model_doc_min"     : model_doc_min ,
 } 
 
 
@@ -39,6 +39,7 @@ models 				= {
 
 
 
+@ns.doc(security='apikey')
 @ns.route("/get_one/<string:doc_id>")
 class Tag_infos_(Resource):
   
@@ -71,10 +72,10 @@ class Tag_infos_(Resource):
     log.debug("claims : \n %s", pformat(claims) )
 
 
-    ### query db from generic function 		
-    query_args				= query_data_arguments.parse_args(request)
-    page_args				= pagination_arguments.parse_args(request)
-    results, response_code	= Query_db_doc (
+    ### query db from generic function     
+    query_args        = query_data_arguments.parse_args(request)
+    page_args        = pagination_arguments.parse_args(request)
+    results, response_code  = Query_db_doc (
       ns, 
       models,
       document_type,
@@ -92,6 +93,7 @@ class Tag_infos_(Resource):
     return results, response_code
 
 
+@ns.doc(security='apikey')
 @ns.route('/list')
 class Tag_List(Resource):
 
@@ -125,10 +127,10 @@ class Tag_List(Resource):
     log.debug("claims : \n %s", pformat(claims) )
 
 
-    ### query db from generic function 		
-    query_args				= query_arguments.parse_args(request)
-    page_args				= pagination_arguments.parse_args(request)
-    results, response_code	= Query_db_list (
+    ### query db from generic function     
+    query_args        = query_arguments.parse_args(request)
+    page_args        = pagination_arguments.parse_args(request)
+    results, response_code  = Query_db_list (
       ns, 
       models,
       document_type,

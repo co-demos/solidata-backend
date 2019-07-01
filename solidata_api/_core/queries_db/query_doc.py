@@ -14,8 +14,8 @@ from pandas.io.json import json_normalize
 from log_config import log, pformat
 log.debug("... _core.queries_db.query_doc.py ..." )
 
-from	bson.objectid  import ObjectId
-from 	flask_restplus import  marshal
+from bson.objectid  import ObjectId
+from flask_restplus import  marshal
 
 from 	. import db_dict_by_type, Marshaller
 from 	solidata_api._choices._choices_docs import doc_type_dict
@@ -72,64 +72,29 @@ def Query_db_doc (
   query_resume = {
     "document_type"	: document_type,	
     "doc_id" 				: doc_id,
-    "user_id" 			: user_id,
-    "user_role"			: user_role,
-    "page_args"			: page_args,
-    "query_args"		: query_args,
+    "user_id"       : user_id,
+    "user_role"     : user_role,
+    "page_args"     : page_args,
+    "query_args"    : query_args,
     "is_member_of_team" : False,
-    "is_creator" 		: False,
+    "is_creator"    : False,
   }
   log.debug('query_resume : \n%s', pformat(query_resume) )  
 
   ### get query arguments
   # log.debug('query_args : \n%s', pformat(query_args) )  
-  only_f_data		= query_args.get('only_f_data',		False )
-  only_stats		= query_args.get('only_stats',		False )
-  # slice_f_data	= query_args.get('slice_f_data',	True )
-  # sort_by				= query_args.get('sort_by',				None )
-  # descending		= query_args.get('descending',		False )
-  # shuffle_seed	= query_args.get('shuffle_seed',	None )
-  q_normalize		= query_args.get('normalize',			False )
+  only_f_data  = query_args.get('only_f_data',		False )
+  only_stats   = query_args.get('only_stats',		False )
+  # slice_f_data = query_args.get('slice_f_data',	True )
+  # sort_by      = query_args.get('sort_by',				None )
+  # descending   = query_args.get('descending',		False )
+  # shuffle_seed = query_args.get('shuffle_seed',	None )
+  q_normalize  = query_args.get('normalize',			False )
 
-
-  ### TO FINISH !!!
-  """ ### prepare pipelines 
-    pipeline_queries		= {
-      "$or" : [
-        { "infos.title" : q_value_str },
-      ]
-    }
-    pipeline_accessible 	= {
-      "public_auth.open_level_show" : { 
-        "$in" : dft_open_level_show,
-      } 
-    }
-    pipeline_user_is_in_team 	= {
-      "team" : { 
-        "$elemMatch" : {
-          "oid_usr" : user_oid
-        }
-      } 
-    }
-    pipeline_user_not_in_team 	= { 
-      "public_auth.open_level_show" : { 
-        "$in" : dft_open_level_show,
-      },
-      "team" : { 
-        "$not" : {
-          "$elemMatch" : {
-            "oid_usr" : {
-              "$in" : [ user_oid ]
-            }
-          }
-        }
-      } 
-    }
-  """
 
   ### retrieve from db
   if ObjectId.is_valid(doc_id) : 
-    doc_oid	 = ObjectId(doc_id)
+    doc_oid  = ObjectId(doc_id)
     document = db_collection.find_one( {"_id": doc_oid })
     # log.debug( "document._id : %s", str(document["_id"]) )
     # log.debug( "document : \n%s", pformat(document) )
@@ -236,7 +201,7 @@ def Query_db_doc (
 
   ### return response
   return {
-    "msg" 	: message,
-    "data"	: document_out,
-    "query"	: query_resume,
+    "msg"   : message,
+    "data"  : document_out,
+    "query" : query_resume,
   }, response_code

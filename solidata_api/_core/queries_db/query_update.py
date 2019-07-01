@@ -203,11 +203,11 @@ def Query_db_update (
             payload_map["open_level_show"] = payload_data["open_level_show"]
 
           elif field_to_update == "mapping.dsi_to_dmf" : 
-            selector_f = field_to_update+".dsi_header"
-            selector_v = payload_map["dsi_header"] = payload_data["dsi_header"]
+            selector_f  = field_to_update+".dsi_header"
+            selector_v  = payload_map["dsi_header"] = payload_data["dsi_header"]
             selector_f_ = field_to_update+".oid_dsi"
             selector_v_ = payload_map["oid_dsi"] = ObjectId ( payload_data["id_dsi"] )
-            selector 	= { selector_f : selector_v, selector_f_ : selector_v_ }
+            selector    = { selector_f : selector_v, selector_f_ : selector_v_ }
             if payload_data["id_dmf"] == "_ignore_" or delete_from_mapping : 
               # payload_map["oid_dmf"] = None
               pass
@@ -217,7 +217,7 @@ def Query_db_update (
           elif field_to_update == "mapping.map_rec" : 
             selector_f = field_to_update+".oid_rec"
             selector_v = payload_map["oid_rec"] = ObjectId( payload_data["id_rec"] )
-            selector = { selector_f : selector_v }
+            selector   = { selector_f : selector_v }
             payload_map["rec_params"] =  payload_data["rec_params"] 
 
           # elif field_to_update == "mapping.rec_to_func" : 

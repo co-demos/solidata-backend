@@ -14,11 +14,11 @@ from pandas.io.json import json_normalize
 from log_config import log, pformat
 log.debug("... _core.queries_db.query_stats.py ..." )
 
-from	bson.objectid 	import ObjectId
-from 	flask_restplus 	import  marshal
+from  bson.objectid   import ObjectId
+from   flask_restplus   import  marshal
 
-from 	. import db_dict_by_type, Marshaller
-from 	solidata_api._choices._choices_docs import doc_type_dict
+from   . import db_dict_by_type, Marshaller
+from   solidata_api._choices._choices_docs import doc_type_dict
 
 import operator
 
@@ -36,7 +36,7 @@ def Query_db_stats (
     query_args,
     doc_id = None,
     is_one_stat = False,
-    roles_for_complete 	= ["admin"],
+    roles_for_complete   = ["admin"],
     payload = {}
   ):
 
@@ -55,11 +55,11 @@ def Query_db_stats (
   db_collection = db_dict_by_type[document_type]
   document_type_full = doc_type_dict[document_type]
   user_id = user_oid = None
-  user_role	= "anonymous"
+  user_role  = "anonymous"
   document_out = None
-  message	= "testing stats endpoint for the whole app"
+  message  = "testing stats endpoint for the whole app"
   dft_open_level_show = ["open_data"]
-  response_code	= 200
+  response_code  = 200
   can_access_complete = True
 
   if claims or claims!={}  :
@@ -72,7 +72,7 @@ def Query_db_stats (
 
   ### sum up all query arguments
   query_resume = {
-    "document_type" : document_type,	
+    "document_type" : document_type,  
     "doc_id"        : doc_id,
     "user_id"       : user_id,
     "user_role"     : user_role,
@@ -108,7 +108,7 @@ def Query_db_stats (
 
   ### build basic info for db query
   if is_one_stat and doc_id and ObjectId.is_valid(doc_id) : 
-    doc_oid	 = ObjectId(doc_id)
+    doc_oid   = ObjectId(doc_id)
     document = db_collection.find_one( {"_id": doc_oid })
 
     db_collection = db_dict_by_type[ document_type + "_doc" ]
@@ -119,7 +119,7 @@ def Query_db_stats (
     document = db_collection.find({})
 
   else :
-    response_code	= 400
+    response_code  = 400
     document = None
 
 
@@ -165,7 +165,7 @@ def Query_db_stats (
       needs_unwind = p["agg_needs_unwind"]
       unwind_separator = p["agg_unwind_separator"]
       if needs_unwind : 
-        field_unwindder = [
+        q_unwindders = [
           { "$addFields": { 
               field : { 
                 "$filter" : {
@@ -181,7 +181,6 @@ def Query_db_stats (
             }},
           { "$unwind" : "${}".format(field) }
         ]
-        q_unwindders.append(field_unwindder)
     
     ### $ unwind - append unwindders to aggregation pipelinne
     log.debug( "unwindders : \n%s", pformat(q_unwindders) )
@@ -253,14 +252,14 @@ def Query_db_stats (
     ### check and run pipeline
     log.debug( "q_aggregate : \n%s", pformat(q_aggregate) )
     results = db_collection.aggregate(q_aggregate)
-    message	= "stats required for this {}".format(document_type_full)
+    message  = "stats required for this {}".format(document_type_full)
     document_out = list(results)
 
 
 
 
   else : 
-    message	= "this {} doesn't exist".format(document_type_full)
+    message  = "this {} doesn't exist".format(document_type_full)
     response_code = 401
 
   log.debug('query_resume : \n%s', pformat(query_resume)) 
@@ -456,7 +455,7 @@ def Query_db_stats (
   #     message = "dear user, there is the {} you requested given your credentials".format(document_type_full)
 
   #   else : 
-  #     response_code	= 401
+  #     response_code  = 401
   #     ### unvalid credentials / empty response
   #     message = "dear user, you don't have the credentials to access/see this {} with this oid : {}".format(document_type_full, doc_id) 
 

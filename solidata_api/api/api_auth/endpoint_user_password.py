@@ -28,11 +28,11 @@ model_access_user = User_infos(ns).model_access
 ### cf : response codes : https://restfulapi.net/http-status-codes/ 
 
 
+@ns.doc(security='apikey')
 @ns.route("/password_forgotten" )
 @ns.response(404, 'user not found')
 class PasswordForgotten(Resource):
 
-  @ns.doc(security='apikey')
   @ns.doc('password_send_email')
   @ns.expect(model_email_user)
   @ns.doc(responses={401: 'error client : incorrect login or no user'})
@@ -134,39 +134,39 @@ class ResetPassword(Resource):
     log.debug( "ROUTE class : %s", self.__class__.__name__ )
 
     ### retrieve user's email from jwt
-    user_email 				= get_jwt_identity()
+    user_email = get_jwt_identity()
     log.info( "...'{}' is renewing its password...".format(user_email) ) 
 
     ### retrieve sent token 
-    sent_token 				= get_raw_jwt()
+    sent_token = get_raw_jwt()
     log.debug( "sent_token : \n %s", pformat(sent_token) ) 
 
     ### find user in DB
     user = mongo_users.find_one({"infos.email" : user_email })
     
     ### marshall infos
-    user_light				= marshal( user , model_access_user)
-    user_light["_id"] 		= str(user["_id"])
+    user_light = marshal( user , model_access_user)
+    user_light["_id"] = str(user["_id"])
     user_light["reset_pwd"] = True
 
     ### create a new and temporary refresh_token 
-    expires 				= app.config["JWT_RESET_PWD_ACCESS_TOKEN_EXPIRES"]
-    reset_pwd_access_token 	= create_access_token(identity=user_light, expires_delta=expires, fresh=True)
+    expires = app.config["JWT_RESET_PWD_ACCESS_TOKEN_EXPIRES"]
+    reset_pwd_access_token = create_access_token(identity=user_light, expires_delta=expires, fresh=True)
     # refresh_token	= user["auth"]["refr_tok"]
     # refresh_token = create_refresh_token(identity=user_light, expires_delta=expires) # sent_token
     log.debug("reset_pwd_access_token : \n %s", reset_pwd_access_token)
 
     ### store tokens
     tokens = {
-        'access_token'	: reset_pwd_access_token,
-        # 'refresh_token'	: refresh_token
+      'access_token'	: reset_pwd_access_token,
+      # 'refresh_token'	: refresh_token
     }
     log.info("tokens : \n %s", pformat(tokens))
 
     return { 
-      "msg" 		: "you are now allowed to enter/POST your new password with the reset_pwd_access_token sent, you have {} to renew your password".format(expires), 
-      "expires"	: str(expires),
-      "tokens" 	: tokens
+      "msg"     : "you are now allowed to enter/POST your new password with the reset_pwd_access_token sent, you have {} to renew your password".format(expires), 
+      "expires" : str(expires),
+      "tokens"  : tokens
     }, 200
 
   
@@ -224,17 +224,17 @@ class ResetPassword(Resource):
       # refresh_token = create_refresh_token(identity=user_light)
       refresh_token 	= user["auth"]["refr_tok"]
       tokens = {
-            'access_token'	: access_token,
-            'refresh_token'	: refresh_token
-          }
+        'access_token'	: access_token,
+        'refresh_token'	: refresh_token
+      }
 
       return {
-            "msg" 		: "your password is now updated with your new one", 
-            "tokens" 	: tokens
-          }, 200
+        "msg" 		: "your password is now updated with your new one", 
+        "tokens" 	: tokens
+      }, 200
 
     ### password is very bad
     else :
       return {
-            "msg" 		: "your password is very bad mate !!!", 
-          }, 401
+        "msg" 		: "your password is very bad mate !!!", 
+      }, 401

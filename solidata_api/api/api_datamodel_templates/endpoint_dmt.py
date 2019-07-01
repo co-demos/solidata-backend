@@ -39,6 +39,7 @@ models 				= {
 
 
 
+@ns.doc(security='apikey')
 @ns.route("/get_one/<string:doc_id>")
 class Dmt_infos_(Resource):
       
@@ -93,6 +94,7 @@ class Dmt_infos_(Resource):
 
 
 
+@ns.doc(security='apikey')
 @ns.route('/list')
 class Dmt_List(Resource):
 

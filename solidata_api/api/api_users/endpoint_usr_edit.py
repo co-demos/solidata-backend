@@ -16,18 +16,18 @@ ns = Namespace('edit', description="Users : user's info edition related endpoint
 ### import models 
 from solidata_api._models.models_updates import * 
 from solidata_api._models.models_user import *  
-model_doc 				= User_infos(ns)
-model_doc_out			= model_doc.model_complete_out
-model_doc_guest_out		= model_doc.model_guest_out
-model_doc_min			= model_doc.model_minimum
-models 				= {
-  "model_doc_out" 		: model_doc_out ,
-  "model_doc_guest_out" 	: model_doc_guest_out ,
-  "model_doc_min" 		: model_doc_min ,
+model_doc           = User_infos(ns)
+model_doc_out       = model_doc.model_complete_out
+model_doc_guest_out = model_doc.model_guest_out
+model_doc_min       = model_doc.model_minimum
+models = {
+  "model_doc_out"       : model_doc_out ,
+  "model_doc_guest_out" : model_doc_guest_out ,
+  "model_doc_min"       : model_doc_min ,
 } 
-model_data				= UserData(ns).model
+model_data = UserData(ns).model
 
-model_update	= Update_infos(ns, document_type).model_update_generic
+model_update  = Update_infos(ns, document_type).model_update_generic
 
 ### + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + ###
 ### ROUTES 
@@ -77,7 +77,7 @@ class Usr_edit(Resource) :
     log.debug("claims : \n %s", pformat(claims) )
 
     ### update doc in DB
-    updated_doc, response_code	= Query_db_update (
+    updated_doc, response_code  = Query_db_update (
       ns, 
       models,
       document_type,
@@ -121,15 +121,15 @@ class Usr_edit(Resource) :
     claims = returnClaims()
     log.debug("claims : \n %s", pformat(claims) )
 
-    ### query db from generic function 		
-    results, response_code	= Query_db_delete (
+    ### query db from generic function     
+    results, response_code  = Query_db_delete (
       ns, 
       models,
       document_type,
       usr_id,
       claims,
-      roles_for_delete 	= ["admin"],
-      auth_can_delete 	= ["owner"],
+      roles_for_delete   = ["admin"],
+      auth_can_delete   = ["owner"],
     )
 
     log.debug("results : \n%s ", pformat(results) )

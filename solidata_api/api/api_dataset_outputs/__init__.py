@@ -54,9 +54,12 @@ def default_error_handler(e):
 ### import api namespaces / add namespaces to api wrapper
 ### + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + ###
 
-from .endpoint_dso import 		ns as ns_dso_list
+from .endpoint_dso import ns as ns_dso_list
 api.add_namespace(ns_dso_list)
 
-from .endpoint_dso_edit import 	ns as ns_dso_edit
+from .endpoint_dso_edit import ns as ns_dso_edit
 api.add_namespace(ns_dso_edit)
+
+from .endpoint_dso_exports import ns as ns_dso_exports
+api.add_namespace(ns_dso_exports)
 

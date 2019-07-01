@@ -15,14 +15,14 @@ ns = Namespace('infos', description='Projects : request and list all prj infos')
 
 ### import models 
 from solidata_api._models.models_project import * 
-mod_doc				= Prj_infos(ns)
-model_doc_out		= mod_doc.mod_complete_out
-model_doc_guest_out	= mod_doc.model_guest_out
-model_doc_min		= mod_doc.model_minimum
-models 				= {
-  "model_doc_out" 		: model_doc_out ,
-  "model_doc_guest_out" 	: model_doc_guest_out ,
-  "model_doc_min" 		: model_doc_min ,
+mod_doc             = Prj_infos(ns)
+model_doc_out       = mod_doc.mod_complete_out
+model_doc_guest_out = mod_doc.model_guest_out
+model_doc_min       = mod_doc.model_minimum
+models = {
+  "model_doc_out"       : model_doc_out ,
+  "model_doc_guest_out" : model_doc_guest_out ,
+  "model_doc_min"       : model_doc_min ,
 } 
 
 
@@ -38,6 +38,7 @@ models 				= {
 
 
 
+@ns.doc(security='apikey')
 @ns.route("/get_one/<string:doc_id>")
 class Prj_infos_(Resource):
   
@@ -76,8 +77,8 @@ class Prj_infos_(Resource):
 
 
     ### query db from generic function 		
-    query_args			= query_data_arguments.parse_args(request)
-    page_args				= pagination_arguments.parse_args(request)
+    query_args = query_data_arguments.parse_args(request)
+    page_args  = pagination_arguments.parse_args(request)
     results, response_code	= Query_db_doc (
       ns, 
       models,
@@ -96,6 +97,7 @@ class Prj_infos_(Resource):
     return results, response_code
 
 
+@ns.doc(security='apikey')
 @ns.route('/list')
 class Prj_List(Resource):
 
@@ -135,8 +137,8 @@ class Prj_List(Resource):
     # log.debug("args_type : %s ", args_type)
 
     ### query db from generic function 		
-    query_args				= query_arguments.parse_args(request)
-    page_args				= pagination_arguments.parse_args(request)
+    query_args = query_arguments.parse_args(request)
+    page_args  = pagination_arguments.parse_args(request)
     log.debug ("page_args : \n{}".format(page_args))
 
     results, response_code	= Query_db_list (

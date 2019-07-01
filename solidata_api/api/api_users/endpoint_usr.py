@@ -18,18 +18,18 @@ ns = Namespace('infos', description='Users : users lists related endpoints ')
 ### import models 
 from solidata_api._models.models_user import *  
 model_new_user  = NewUser(ns).model
-model_user 		= User_infos(ns)
-model_user_in	= model_user.model_complete_in
-model_user_out	= model_user.model_complete_out
+model_user     = User_infos(ns)
+model_user_in  = model_user.model_complete_in
+model_user_out  = model_user.model_complete_out
 
-mod_doc				= User_infos(ns)
-model_doc_out		= mod_doc.mod_complete_out
-model_doc_guest_out	= mod_doc.model_guest_out
-model_doc_min		= mod_doc.model_minimum
-models 				= {
-  "model_doc_out" 		: model_doc_out ,
-  "model_doc_guest_out" 	: model_doc_guest_out ,
-  "model_doc_min" 		: model_doc_min ,
+mod_doc        = User_infos(ns)
+model_doc_out    = mod_doc.mod_complete_out
+model_doc_guest_out  = mod_doc.model_guest_out
+model_doc_min    = mod_doc.model_minimum
+models         = {
+  "model_doc_out"     : model_doc_out ,
+  "model_doc_guest_out"   : model_doc_guest_out ,
+  "model_doc_min"     : model_doc_min ,
 } 
 
 
@@ -40,6 +40,7 @@ models 				= {
 ### cf : response codes : https://restfulapi.net/http-status-codes/ 
 
 
+@ns.doc(security='apikey')
 @ns.route("/get_one/<string:doc_id>")
 class Usr_infos_(Resource):
   
@@ -72,10 +73,10 @@ class Usr_infos_(Resource):
     log.debug("claims : \n %s", pformat(claims) )
 
 
-    ### query db from generic function 		
+    ### query db from generic function     
     query_args = query_data_arguments.parse_args(request)
     page_args  = pagination_arguments.parse_args(request)
-    results, response_code	= Query_db_doc (
+    results, response_code  = Query_db_doc (
       ns, 
       models,
       document_type,
@@ -93,6 +94,7 @@ class Usr_infos_(Resource):
     return results, response_code
 
 
+@ns.doc(security='apikey')
 @ns.route('/list')
 class Usr_List(Resource):
 
@@ -127,10 +129,10 @@ class Usr_List(Resource):
     log.debug("claims : \n %s", pformat(claims) )
 
 
-    ### query db from generic function 		
+    ### query db from generic function     
     query_args = query_arguments.parse_args(request)
     page_args  = pagination_arguments.parse_args(request)
-    results, response_code	= Query_db_list (
+    results, response_code  = Query_db_list (
       ns, 
       models,
       document_type,

@@ -41,6 +41,7 @@ mod_stats_query = mod_stats.model_stats_query
 
 
 
+@ns.doc(security='apikey')
 @ns.route("/get_one/<string:doc_id>")
 class Dsi_infos_(Resource):
   
@@ -97,6 +98,7 @@ class Dsi_infos_(Resource):
     return results, response_code
 
 
+@ns.doc(security='apikey')
 @ns.route("/get_one_stats/<string:doc_id>")
 class Dsi_stats_(Resource):
   
@@ -158,6 +160,7 @@ class Dsi_stats_(Resource):
     return results, response_code
 
 
+@ns.doc(security='apikey')
 @ns.route('/list')
 class Dsi_List(Resource):
 
@@ -213,6 +216,7 @@ class Dsi_List(Resource):
     return results, response_code
 
 
+@ns.doc(security='apikey')
 @ns.route("/list_stats")
 class Dsi_list_stats_(Resource):
   

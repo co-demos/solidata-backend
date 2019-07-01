@@ -54,11 +54,14 @@ def default_error_handler(e):
 from .endpoint_dsi_create import ns as ns_dsi_create
 api.add_namespace(ns_dsi_create)
 
-from .endpoint_dsi 				import ns as ns_dsi_list
+from .endpoint_dsi import ns as ns_dsi_list
 api.add_namespace(ns_dsi_list)
 
-from .endpoint_dsi_edit 	import ns as ns_dsi_edit
+from .endpoint_dsi_edit import ns as ns_dsi_edit
 api.add_namespace(ns_dsi_edit)
 
-from .endpoint_dsi_reload import 	ns as ns_dsi_reload
+from .endpoint_dsi_reload import ns as ns_dsi_reload
 api.add_namespace(ns_dsi_reload)
+
+from .endpoint_dsi_exports import ns as ns_dsi_export
+api.add_namespace(ns_dsi_export)

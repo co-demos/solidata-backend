@@ -189,15 +189,15 @@ class NewAccessToken(Resource) :
         tokens["salt_token"] = public_key_str
 
       return {	
-            "msg" 		: "new access token for user : {} ".format(user_identity) , 
-            "data"		: user_light,
-            "tokens"	: tokens
-          }, 200 		### indicates to redirect to other URL
+        "msg" 		: "new access token for user : {} ".format(user_identity) , 
+        "data"		: user_light,
+        "tokens"	: tokens
+      }, 200 		### indicates to redirect to other URL
   
     else : 
       return {
-            "msg" 		: "user not found or is anonymous" , 
-          }, 401
+        "msg" 		: "user not found or is anonymous" , 
+      }, 401
 
 
 
@@ -233,8 +233,8 @@ class FreshAccessToken(Resource):
     if user :
 
       ### marshal user's info 
-      user_light 			= marshal( user , model_user_access)
-      user_light["_id"] 	= str(user["_id"])
+      user_light = marshal( user , model_user_access)
+      user_light["_id"] = str(user["_id"])
 
       # Use create_access_token() to create user's fresh access token 
       fresh_access_token 	= create_access_token(identity=user_light, fresh=True)
@@ -246,20 +246,21 @@ class FreshAccessToken(Resource):
         tokens["salt_token"] = public_key_str
       
       return {	
-                "msg" 							: "fresh access_token created for user '{}' ".format(user_identity) , 
-                "is_user_confirmed" : user["auth"]["conf_usr"],
-                "tokens"						: tokens
-            }, 200
+          "msg"               : "fresh access_token created for user '{}' ".format(user_identity) , 
+          "is_user_confirmed" : user["auth"]["conf_usr"],
+          "tokens"            : tokens
+      }, 200
     
     else : 
 
       return {
-                "msg" 		: "incorrect user" , 
-            }, 401
+          "msg" : "incorrect user" , 
+      }, 401
 
 
 # @ns.route('/new_refresh_token' )
 # @ns.route('/new_refresh_token/', defaults={ 'old_refresh_token':'your_old_refresh_token' } )
+@ns.doc(security='apikey')
 @ns.route('/new_refresh_token/<string:old_refresh_token>' )
 @ns.param('old_refresh_token', 'The expired refresh_token')
 class NewRefreshToken(Resource) :
@@ -286,20 +287,20 @@ class NewRefreshToken(Resource) :
     log.debug ("payload : \n{}".format(pformat(ns.payload)))
 
     ### retrieve jwt
-    # raw_jwt 				= ns.payload["old_refresh_token"]
-    raw_jwt 				= old_refresh_token
+    # raw_jwt = ns.payload["old_refresh_token"]
+    raw_jwt = old_refresh_token
     log.debug("raw_jwt : \n %s", pformat(raw_jwt))
 
     ### decode jwt
-    # decoded_token 			= decode_token(raw_jwt)
-    decoded_token 			= jwt.decode(raw_jwt, app.config.get('JWT_SECRET_KEY'), options={'verify_exp': False})
+    # decoded_token = decode_token(raw_jwt)
+    decoded_token = jwt.decode(raw_jwt, app.config.get('JWT_SECRET_KEY'), options={'verify_exp': False})
     log.debug("decoded_token : \n %s", pformat(decoded_token))
 
     ### check jwt and user's identity from old refresh_token
-    jwt_type			= decoded_token["type"]
-    jwt_identity 		= decoded_token["jti"]
+    jwt_type = decoded_token["type"]
+    jwt_identity = decoded_token["jti"]
     log.debug('jwt_type : {} / jwt_identity : {}'.format(jwt_type, jwt_identity) )
-    user_identity 		= decoded_token["identity"]
+    user_identity = decoded_token["identity"]
     log.debug('user_identity from old refresh_token : \n%s', user_identity )
 
 
@@ -317,12 +318,12 @@ class NewRefreshToken(Resource) :
         if user["auth"]["conf_usr"] and user["auth"]["is_blacklisted"] == False : 
 
           ### marshal user's info 
-          user_light 				= marshal( user , model_user_login_out)
-          # user_light["_id"] 		= str(user["_id"])
+          user_light = marshal( user , model_user_login_out)
+          # user_light["_id"] = str(user["_id"])
           log.debug("user_light : \n %s", pformat(user_light)) 
 
           # create a new refresh_token 
-          new_refresh_token 		= create_refresh_token(identity=user_light)
+          new_refresh_token = create_refresh_token(identity=user_light)
 
           # and save it into user's data in DB
           user["auth"]["refr_tok"] = new_refresh_token
@@ -330,35 +331,35 @@ class NewRefreshToken(Resource) :
           log.debug("new_refresh_token is saved in user's data : %s", new_refresh_token ) 
 
           # create user's new_access_token 
-          new_access_token 		= create_access_token(identity=user_light)
+          new_access_token = create_access_token(identity=user_light)
 
           tokens = {
-            "access_token" 	: new_access_token,
+            "access_token" : new_access_token,
             "refresh_token" : new_refresh_token
           }
           if app.config["RSA_MODE"] == "yes":
             tokens["salt_token"] = public_key_str
           
           ### return new tokens 
-          return {	
-                    "msg" 		: "new refresh_token created for user '{}' ".format(user_identity) , 
-                    "tokens"	: tokens
-                }, 200
+          return {
+              "msg"    : "new refresh_token created for user '{}' ".format(user_identity) , 
+              "tokens" : tokens
+          }, 200
 
         ### user's email not confirmed or blacklisted
         else : 
           return {
-                    "msg" : "you need to confirm your email '{}' first before...".format(user_identity)
-                }, 401
-      
+              "msg" : "you need to confirm your email '{}' first before...".format(user_identity)
+          }, 401
+
       ### user not in DB
       else : 
         return {
-                  "msg" : "no such user in DB"
-              }, 401
+            "msg" : "no such user in DB"
+        }, 401
 
     ### user is anonymous | wrong jwt
     else : 
       return {
-                "msg" : "anonyous users can't renew their refresh_token OR wrong jwt type..."
-            }, 401
+          "msg" : "anonyous users can't renew their refresh_token OR wrong jwt type..."
+      }, 401
