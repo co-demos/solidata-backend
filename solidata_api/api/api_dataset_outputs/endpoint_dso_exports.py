@@ -4,7 +4,7 @@
 endpoint_dso_exports.py  
 """
 
-from flask_csv import send_csv
+# from flask_csv import send_csv
 
 from solidata_api.api import *
 
@@ -20,9 +20,6 @@ ns = Namespace('exports', description='Dataset outputs : export dso docs')
 ### ROUTES
 ### + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + ###
 ### cf : response codes : https://restfulapi.net/http-status-codes/ 
-
-
-
 
 
 @ns.doc(security='apikey')
@@ -42,7 +39,7 @@ class Dso_export_csv_(Resource):
   @ns.doc(params={'doc_id': 'the dataset output oid'})
   def get(self, doc_id):
     """
-    get infos of a specific dso in db
+    export dso as csv from a specific dso oid
 
     :param doc_id : dso's oid <doc_id>
 
@@ -63,8 +60,6 @@ class Dso_export_csv_(Resource):
     log.debug("claims : \n %s", pformat(claims) )
 
     ### query db from generic function 		
-    # query_args = query_data_dso_arguments.parse_args(request)
-    # page_args  = pagination_arguments.parse_args(request)
     results, response_code	= Query_db_doc_export (
       ns, 
       # models,
@@ -96,12 +91,6 @@ class Dso_export_csv_(Resource):
       log.debug("ds_delimiter : %s ", ds_delimiter )
 
       ds_data = results["ds_data"]
-      # ds_data = [
-      #   { "id": 1 , "foo": "a", "bar": 100, "baz" : "abc" },
-      #   { "id": 2 , "foo": "b", "bar": 200 },
-      #   { "id": 3 , "foo": "c", "bar": 300, "baz" : "xyz" },
-      #   { "id": 4 , "foo": "d", "bar": 400 },
-      # ]
       log.debug("ds_data[0] : \n%s ", pformat(ds_data[0]) )
       
       ds_cols_to_export = results["ds_cols_to_export"]

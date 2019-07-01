@@ -1,19 +1,19 @@
 # -*- encoding: utf-8 -*-
 
 """
-endpoint_dsi_exports.py  
+endpoint_prj_exports.py  
 """
 
 # from flask_csv import send_csv
 
 from solidata_api.api import *
 
-log.debug(">>> api_dataset_inputs ... creating api endpoints for DSI")
+log.debug(">>> api_projects ... creating api endpoints for PRJ")
 
 from . import api, document_type
 
 ### create namespace
-ns = Namespace('exports', description='Dataset inputs : export dsi docs')
+ns = Namespace('exports', description='Dataset outputs : export dso docs')
 
 
 ### + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + ###
@@ -24,26 +24,32 @@ ns = Namespace('exports', description='Dataset inputs : export dsi docs')
 
 @ns.doc(security='apikey')
 @ns.route("/as_csv/<string:doc_id>")
-class Dsi_export_csv(Resource):
+class Prj_export_csv_(Resource):
   
-  @ns.doc('dsi_export_csv')
-  # @ns.expect(query_arguments)
-  # @ns.expect(query_pag_args, query_data_dsi_arguments)
+  """
+  DSO infos
+  GET - Export PRJ's DSO as CSV 
+  """
+
+  @ns.doc('prj_export_csv')
+  # @ns.expect(query_pag_args, query_data_dso_arguments)
   # @jwt_optional
   @jwt_optional_sd
   # @guest_required 
-  @ns.doc(params={'doc_id': 'the dataset input oid'})
+  @ns.doc(params={'doc_id': 'the dataset output oid'})
   def get(self, doc_id):
     """
-    export dsi as csv from a specific dsi oid
+    export csv from a specific prj published in db (so dso -> dso_docs)
 
-    :param doc_id : dsi's oid <doc_id>
+    :param doc_id : prj's oid <doc_id>
 
     >
-      --- needs   : dsi's oid <doc_id>
-      >>> returns : dsi data as csv
+      --- needs : a dso/project doc_id in the url
+      --- optional : request arguments (pagination|query), json web token in headers...  (cf : solidata_api._parsers.parser_classes)
+      >>> returns : dso/project data
 
     """
+
     ### DEBUGGING
     print()
     print("-+- "*40)
@@ -57,11 +63,14 @@ class Dsi_export_csv(Resource):
     results, response_code	= Query_db_doc_export (
       ns, 
       # models,
-      document_type,
+      'dso', # document_type,
       doc_id,
       claims,
       roles_for_complete = ["admin"],
     )
+
+    log.debug("results have been retrieved ... " )
+    # log.debug("results : \n%s ", pformat(results) )
 
     log.debug("results have been retrieved ... " )
 
@@ -71,7 +80,7 @@ class Dsi_export_csv(Resource):
     else : 
 
       log.debug("results['ds_data'][0] : \n%s ", pformat(results["ds_data"][0]) )
-
+  
       ds_filename = results["ds_filename"]
       log.debug("ds_filename : %s ", ds_filename )
 
@@ -95,4 +104,3 @@ class Dsi_export_csv(Resource):
         writer_kwargs={"extrasaction": "ignore"},
         encoding=ds_encoding,
       )
-

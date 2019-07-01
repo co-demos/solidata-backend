@@ -12,16 +12,18 @@ from bson.objectid import ObjectId
 from bson.json_util import dumps
 # from   werkzeug.datastructures import ImmutableMultiDict
 import operator
+from io import StringIO
 
-import   pandas as pd
-import   numpy as np
-import   requests
+import pandas as pd
+import numpy as np
+import requests
 
-from   flask import Blueprint, current_app as app, url_for, request, render_template
+from flask import Blueprint, current_app as app, url_for, request, render_template
+from flask_csv import send_csv
 
-from   werkzeug.security   import   generate_password_hash, check_password_hash
+from werkzeug.security import   generate_password_hash, check_password_hash
 
-from   flask_restplus     import Api, Namespace, Resource, fields, marshal, reqparse
+from flask_restplus import Api, Namespace, Resource, fields, marshal, reqparse
 
 log.info("SWAGGER_BASE_URL : %s " , os.getenv("SWAGGER_BASE_URL"))
 log.info("app.config['DOMAIN_NAME'] : %s" , app.config["DOMAIN_NAME"])
@@ -58,9 +60,9 @@ class MyApi(Api):
 
 import jwt
 from flask_jwt_extended import (
-    jwt_required, jwt_optional, jwt_refresh_token_required, fresh_jwt_required,
-    create_access_token, create_refresh_token, decode_token,
-    get_jwt_identity, get_jwt_claims, get_raw_jwt,
+  jwt_required, jwt_optional, jwt_refresh_token_required, fresh_jwt_required,
+  create_access_token, create_refresh_token, decode_token,
+  get_jwt_identity, get_jwt_claims, get_raw_jwt,
 )
 
 
