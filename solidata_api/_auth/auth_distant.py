@@ -210,7 +210,7 @@ def distantAuthCall ( api_request=None, query={}, payload={}, func_name='user_lo
 
   log.debug("distantAuthCall / response.status_code : %s", response.status_code )
   response_json = response.json()
-  log.debug("distantAuthCall / response_json : \n%s", pformat(response_json) )
+  # log.debug("distantAuthCall / response_json : \n%s", pformat(response_json) )
   
   if resp_path : 
     ### remap response_json given resp_path if specific 

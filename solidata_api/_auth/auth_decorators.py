@@ -188,7 +188,7 @@ def returnClaims(is_optional=False, return_anonymous_as_default=True):
       "confirm_email" : False,
     }
     response = distantAuthCall( api_request=request, func_name="token_claims" )
-    log.debug("-@- returnClaims / response : \n%s", pformat(response) )
+    # log.debug("-@- returnClaims / response : \n%s", pformat(response) )
     if return_anonymous_as_default :
       claims = response.get( "claims", anonymous_claims )
     else :

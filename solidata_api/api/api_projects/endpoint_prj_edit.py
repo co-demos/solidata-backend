@@ -75,7 +75,7 @@ class Prj_edit(Resource):
     log.debug("claims : \n %s", pformat(claims) )
 
     ### update doc in DB
-    updated_doc, response_code	= Query_db_update (
+    updated_doc, response_code = Query_db_update (
       ns, 
       models,
       document_type,

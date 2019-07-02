@@ -187,87 +187,142 @@ def Query_db_update (
         log.debug( "field_to_update : %s", field_to_update )
 
         add_to_list = payload_data.get('add_to_list', False )
-        is_mapping 	= payload_data.get('is_mapping', False )
+        log.debug( "add_to_list : %s", add_to_list )
+
+        is_mapping = payload_data.get('is_mapping', False )
+        log.debug( "is_mapping : %s", is_mapping )
 
         if is_mapping : 
 
-          payload_map 		= {}
+          doc_maps = document["mapping"]
+          field_selectors = field_to_update.split(".")
+          log.debug( "field_selectors : \n%s", pformat(field_selectors) )
+
+          old_maps = doc_maps[ field_selectors[1] ]
+          log.debug( "old_maps : \n%s", pformat(old_maps) )
+
+          payload_map = {}
           delete_from_mapping = payload_data.get('del_mapping', False )
 
           # cf : https://stackoverflow.com/questions/10522347/mongodb-update-objects-in-a-documents-array-nested-updating 
 
+
+          ### dmf_to_open_level
           if field_to_update == "mapping.dmf_to_open_level" : 
             selector_f = field_to_update+".oid_dmf"
             selector_v = payload_map["oid_dmf"] = ObjectId( payload_data["id_dmf"] )
             selector = { selector_f : selector_v }
             payload_map["open_level_show"] = payload_data["open_level_show"]
 
+          ### dsi_to_dmf
           elif field_to_update == "mapping.dsi_to_dmf" : 
+
             selector_f  = field_to_update+".dsi_header"
             selector_v  = payload_map["dsi_header"] = payload_data["dsi_header"]
+
             selector_f_ = field_to_update+".oid_dsi"
             selector_v_ = payload_map["oid_dsi"] = ObjectId ( payload_data["id_dsi"] )
-            selector    = { selector_f : selector_v, selector_f_ : selector_v_ }
-            if payload_data["id_dmf"] == "_ignore_" or delete_from_mapping : 
-              # payload_map["oid_dmf"] = None
-              pass
-            else : 
-              payload_map["oid_dmf"] 				= ObjectId( payload_data["id_dmf"] )
 
+            selector = { selector_f : selector_v, selector_f_ : selector_v_ }
+            
+            # if payload_data["id_dmf"] == "_ignore_" or delete_from_mapping : 
+            if payload_data["id_dmf"] == "_ignore_" : 
+              delete_from_mapping = True
+              # payload_map["oid_dmf"] = None
+            else : 
+              payload_map["oid_dmf"] = ObjectId( payload_data["id_dmf"] )
+
+          ### map_rec
           elif field_to_update == "mapping.map_rec" : 
             selector_f = field_to_update+".oid_rec"
             selector_v = payload_map["oid_rec"] = ObjectId( payload_data["id_rec"] )
             selector   = { selector_f : selector_v }
             payload_map["rec_params"] =  payload_data["rec_params"] 
 
-          # elif field_to_update == "mapping.rec_to_func" : 
-          # 	selector_f 								= field_to_update+".oid_dmf"
-          # 	selector_v 	= payload_map["oid_rec"] 	= ObjectId( payload_data["id_rec"] )
-          # 	selector 	= { selector_f : selector_v }
 
+          ### rec_to_func
+          # elif field_to_update == "mapping.rec_to_func" : 
+          # 	selector_f = field_to_update+".oid_dmf"
+          # 	selector_v = payload_map["oid_rec"] 	= ObjectId( payload_data["id_rec"] )
+          # 	selector = { selector_f : selector_v }
+
+
+
+          log.debug( "delete_from_mapping : %s", delete_from_mapping )
           log.debug( "selector : \n%s", pformat(selector) )
           log.debug( "payload_map : \n%s", pformat(payload_map) )
 
-          log.debug( "cursor : \n%s", pformat({ "_id"		: ObjectId(doc_id), **selector }) )
+          log.debug( "_id + **selector : \n%s", pformat({ "_id" : ObjectId(doc_id), **selector }) )
+
 
           ### update mapping if selector_v already exists -> update array element
 
-          log.debug( "update mapping / existing mapper... " )
-          ### $set from array if delete_mapping flag is False
-          if not delete_from_mapping : 
-            payload_set = { field_to_update+".$."+key : payload_map[key] for key in payload_map.keys() }
-            log.debug( "payload_set : \n%s", pformat(payload_set) )
-            doc_mapped = db_collection.update_one( 
-              { "_id"		: doc_oid, **selector }, 
-              { "$set" 	:  
-                payload_set
-                # { field_to_update+".$."+key : payload_map[key] for key in payload_map.keys() }
-              }, 
-            )
-          ### $pull from array if delete_mapping flag is True
-          else : 
+          ### $pull / from array if delete_mapping flag is True
+          if delete_from_mapping : 
+
+            log.debug( "update mapping / $pull existing mapper... " )
             payload_pull = payload_map
             log.debug( "payload_pull : \n%s", pformat(payload_pull) )
             doc_mapped = db_collection.update_one( 
-              { "_id"		: doc_oid, **selector }, 
+              { "_id"   : doc_oid, **selector },
+              # { "_id"   : doc_oid },
               { "$pull" : {
                   field_to_update : payload_pull
                 }
-              }, 
+              },
             )
-          log.debug( "...doc_mapped : \n%s ", pformat(doc_mapped) )
-          log.debug( "...doc_mapped.matched_count : \n%s ", pformat(doc_mapped.matched_count) )
 
-          # update mapping if selector_v doesn't exist -> add to array
-          if doc_mapped.matched_count == 0 : 
-            log.debug( "update mapping / non existing mapper... " )
-            doc_mapped = db_collection.update_one( 
-              { "_id"		: doc_oid }, 
-              {  "$addToSet"	:  
-                { field_to_update : payload_map }
-              }, 
-              upsert=True
-            )
+          ### $set | $addToSet / from array if delete_mapping flag is False
+          else : 
+            
+            ### check if needs : $set | $addToSet
+            log.debug( "update mapping / $set OR $addToSet mapping... " )
+
+            if field_to_update == "mapping.dmf_to_open_level" : 
+              is_update = list( filter( (lambda d: d["oid_dmf"] == selector_v ), old_maps) )
+            
+            elif field_to_update == "mapping.dsi_to_dmf" : 
+              is_update = list( filter( (lambda d: d["dsi_header"] == selector_v and d["oid_dsi"] == selector_v_ ), old_maps) )
+            
+            elif field_to_update == "mapping.map_rec" : 
+              is_update = list( filter( (lambda d: d["oid_rec"] == selector_v ), old_maps) )
+
+            log.debug( "is_update : \n%s", is_update)
+            
+            ### $set
+            if is_update : 
+              log.debug( "update mapping / update existing mapper... " )
+
+              payload_set = { field_to_update+".$."+key : payload_map[key] for key in payload_map.keys() }
+              log.debug( "payload_set : \n%s", pformat(payload_set) )
+              
+              # doc_mapped = db_collection.update( 
+              doc_mapped = db_collection.update_one( 
+                { "_id"  : doc_oid, **selector },
+                # { "_id"  : doc_oid },
+                { "$set" :
+                  payload_set
+                }, 
+              )
+
+            ### $addToSet
+            else : 
+              log.debug( "update mapping / adding non existing mapper... " )
+
+              # log.debug( "...doc_mapped : \n%s ", pformat(doc_mapped) ) 
+              # log.debug( "...doc_mapped.matched_count : \n%s ", pformat(doc_mapped.matched_count) )
+
+              # # $addToSet / update mapping if selector_v doesn't exist -> add to array
+              # if doc_mapped.matched_count == 0 : 
+              
+              
+              doc_mapped = db_collection.update_one( 
+                { "_id" : doc_oid }, 
+                {  "$addToSet" :  
+                  { field_to_update : payload_map }
+                }, 
+                upsert=True
+              )
         
         elif add_to_list :
 
@@ -437,12 +492,12 @@ def Query_db_update (
 
       ### append "f_data" if doc is in ["dsi", "dsr", "dsr"]
       document_out = GetFData( document_type, 
-            can_access_complete, not_filtered,
-            document, document_out, doc_oid, doc_open_level_show,
-            team_oids, created_by_oid, roles_for_complete, user_role, user_oid,
-            page_args, query_args,
-            # shuffle_seed, sort_by, slice_f_data, 
-            # start_index, end_index
+        can_access_complete, not_filtered,
+        document, document_out, doc_oid, doc_open_level_show,
+        team_oids, created_by_oid, roles_for_complete, user_role, user_oid,
+        page_args, query_args,
+        # shuffle_seed, sort_by, slice_f_data, 
+        # start_index, end_index
       )
 
       message = "dear user, there is the complete {} you requested ".format(document_type_full)
@@ -466,12 +521,12 @@ def Query_db_update (
 
         ### append "f_data" if doc is in ["dsi", "dsr", "dsr"]
         document_out = GetFData( document_type, 
-              can_access_complete, not_filtered,
-              document, document_out, doc_oid, doc_open_level_show,
-              team_oids, created_by_oid, roles_for_complete, user_role, user_oid,
-              page_args, query_args,
-              # shuffle_seed, sort_by, slice_f_data, 
-              # start_index, end_index
+          can_access_complete, not_filtered,
+          document, document_out, doc_oid, doc_open_level_show,
+          team_oids, created_by_oid, roles_for_complete, user_role, user_oid,
+          page_args, query_args,
+          # shuffle_seed, sort_by, slice_f_data, 
+          # start_index, end_index
         )
 
         # log.debug( "document_out : \n %s", pformat(document_out) )
@@ -494,7 +549,7 @@ def Query_db_update (
 
   ### return response
   return {
-        "msg" 	: message ,
-        "data"	: document_out,
-        "query"	: query_resume,
-      }, response_code
+    "msg" 	: message ,
+    "data"	: document_out,
+    "query"	: query_resume,
+  }, response_code
