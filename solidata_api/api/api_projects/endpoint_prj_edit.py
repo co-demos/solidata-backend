@@ -21,9 +21,9 @@ model_doc_out       = mod_doc.mod_complete_out
 model_doc_guest_out	= mod_doc.model_guest_out
 model_doc_min       = mod_doc.model_minimum
 models = {
-  "model_doc_out" 		: model_doc_out ,
-  "model_doc_guest_out" 	: model_doc_guest_out ,
-  "model_doc_min" 		: model_doc_min ,
+  "model_doc_out"       : model_doc_out ,
+  "model_doc_guest_out" : model_doc_guest_out ,
+  "model_doc_min"       : model_doc_min ,
 } 
 
 model_update	= Update_infos(ns, document_type).model_update_generic

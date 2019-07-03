@@ -74,6 +74,7 @@ dmf_types_uniques = [
 
 dmf_type_objects = [
   'object_raw',
+  'oid'
 ]
 
 dmf_type_lists = [

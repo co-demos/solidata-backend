@@ -206,7 +206,7 @@ def Query_db_build_dso (
             log.debug( "headers_dso_from_dmf_list : \n%s", pformat(headers_dso_from_dmf_list) )
 
             ### merge prj_dmf_mapping_ and headers_dso_from_dmf_list
-            headers_dso       = list( merge_by_key( chain( prj_dmf_mapping_, headers_dso_from_dmf_list), 'oid_dmf') )
+            headers_dso = list( merge_by_key( chain( prj_dmf_mapping_, headers_dso_from_dmf_list), 'oid_dmf') )
             log.debug( "headers_dso : \n%s", pformat(headers_dso) )
 
             ### copy headers to dso_in
@@ -235,10 +235,6 @@ def Query_db_build_dso (
               log.debug( "dsi_list : \n%s", pformat(dsi_list) )
 
               ### prj_dsi_mapping to df + index
-              # df_mapper_dsi_to_dmf = pd.DataFrame(prj_dsi_mapping)
-              # dsi_mapped_list     = list(df_mapper_dsi_to_dmf["oid_dsi"])
-              # df_mapper_dsi_to_dmf = df_mapper_dsi_to_dmf.set_index(["oid_dsi","oid_dmf"])
-              # print()
               # log.debug("... df_mapper_dsi_to_dmf ...")
               # print(df_mapper_dsi_to_dmf)
               dsi_mapped_list, df_mapper_dsi_to_dmf = prj_dsi_mapping_as_df(prj_dsi_mapping)
@@ -247,6 +243,7 @@ def Query_db_build_dso (
               ### get all dsis' f_data
               dsi_raw_data_list = []
               for dsi in dsi_list :
+
                 ### check if at least one field of this dsi is mapped in df_mapper_dsi_to_dmf
                 if dsi["_id"] in dsi_mapped_list : 
                   # initiate dsi_data_raw
@@ -256,16 +253,20 @@ def Query_db_build_dso (
                   }
                   # get corresponding docs in dsi_doc_collection
                   dsi_docs = list(dsi_doc_collection.find({"oid_dsi" : dsi["_id"] }))
+                  
                   # store as dataframe
                   dsi_f_data = pd.DataFrame(dsi_docs)
                   dsi_f_data_cols  = list(dsi_f_data.columns.values)
+                  log.debug( "dsi_f_data_cols : \n%s", pformat(dsi_f_data_cols) )
+
                   f_col_headers_for_df = [ h for h in dsi_f_data_cols if h != "_id" ]
                   dsi_f_data = dsi_f_data[ f_col_headers_for_df ]
+
                   f_data = dsi_f_data.to_dict('records')
                   dsi_data_raw["f_data"] = f_data
 
-                  # dsi_data_raw = dsi["data_raw"]
                   dsi_raw_data_list.append( { "oid_dsi" : dsi["_id"], "data_raw" : dsi_data_raw } )
+              
               # log.debug( "dsi_raw_data_list : \n%s", pformat(dsi_raw_data_list) )
 
               ### reindex and concatenate all f_data from headers_dso and df_mapper_dsi_to_dmf with pandas
@@ -339,6 +340,7 @@ def Query_db_build_dso (
         print()
         log.debug("k : %s / type(k) : %s" %(k, type(k)))
         log.debug("v : %s / type(v) : %s" %(v, type(v)))
+      print()
       log.debug("... preparing to replace / insert dso_in ...")
 
       _id = dso_collection.replace_one( {"_id" : doc_oid }, dso_in, upsert=True )

@@ -321,25 +321,31 @@ def strip_f_data(  data_raw,
   log.debug('f_data_cols : \n%s', pformat(f_data_cols) )  
 
   if document_type == "dsi" : 
-    f_col_headers_for_df   = [ h["f_coll_header_val"] for h in f_col_headers_selected ]
+    f_col_headers_for_df = [ h["f_coll_header_val"] for h in f_col_headers_selected ]
 
   elif document_type == "dso" : 
-    f_col_headers_for_df   = [ h["f_title"] for h in f_col_headers_selected if h["f_title"] in f_data_cols ]
-  
+    f_col_headers_for_df = [ h["f_title"] for h in f_col_headers_selected if h["f_title"] in f_data_cols ]
+    f_col_headers_for_df.append("oid_dsi")
+
   # simplify returned fields if map_list
   if map_list :
-    f_col_headers_for_df = [ field_oid_ref, 'lat', 'lon' ]
+    # f_col_headers_for_df = [ field_oid_ref, 'lat', 'lon' ]
+    f_col_headers_for_df = [ 'lat', 'lon' ]
 
-  # simplify returned fields if fileds_to_return list
+  # simplify returned fields if fields_to_return list
   if fields_to_return :
     if map_list :
-      f_col_headers_for_df += [ f for f in f_col_headers_for_df if f in fields_to_return ]
+      f_col_headers_for_df += [ f for f in fields_to_return if f in f_data_cols ]
     else :
-      f_col_headers_for_df = [ f for f in f_col_headers_for_df if f in fields_to_return ]
+      f_col_headers_for_df = [ f for f in fields_to_return if f in f_data_cols ]
 
 
   ### stringify oid_dso | oid_dsi field
-  f_data_df[field_oid_ref] = f_data_df[field_oid_ref].apply(lambda x: str(x))
+  if field_oid_ref in f_data_cols :
+    f_data_df[field_oid_ref] = f_data_df[field_oid_ref].apply(lambda x: str(x))
+    if "oid_dsi" in f_col_headers_for_df and field_oid_ref == "oid_dso" : 
+      f_data_df["oid_dsi"] = f_data_df["oid_dsi"].apply(lambda x: str(x))
+      # f_data_df = f_data_df.rename( index=str, columns = {"oid_dsi" : "sd_id_dsi"})
 
 
   ### append "_id" column to authorized columns
