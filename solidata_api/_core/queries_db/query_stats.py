@@ -104,7 +104,11 @@ def Query_db_stats (
     sort_order = 1
 
   ### get payload 
-  log.debug('payload : \n%s', pformat(payload) )  
+  log.debug('payload : \n%s', pformat(payload) )
+  is_payload = False
+  if payload and payload != {} and len(payload) > 0 :
+    is_payload = True
+
 
   ### starting dict for matching parrt of aggregation
   q_match = { "$match" : {} }
@@ -127,7 +131,7 @@ def Query_db_stats (
 
 
   ### start 
-  if document : 
+  if document and is_payload : 
 
     ### check doc's specs : public_auth, team...
     doc_open_level_show = document["public_auth"]["open_level_show"]
@@ -277,7 +281,9 @@ def Query_db_stats (
 
 
 
-
+  elif is_payload == False :
+    message  = "your payload is empty, ouuups..."
+    response_code = 401
 
   else : 
     message  = "this {} doesn't exist".format(document_type_full)
