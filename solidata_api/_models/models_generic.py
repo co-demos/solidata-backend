@@ -21,12 +21,12 @@ from solidata_api._serializers.schema_users   import *
 ### + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + ###
 ### MODEL / BASIC INFOS 
 ### + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + ###
-def create_model_basic_infos( 	ns_, 
-    model_name 		= "Basic_infos",
-    schema			= doc_basics,
-    is_user_infos	= False, 
-    is_user_light	= False, 
-    need_licence	= False,
+def create_model_basic_infos(   ns_, 
+    model_name    = "Basic_infos",
+    schema        = doc_basics,
+    is_user_infos = False, 
+    is_user_light = False, 
+    need_licence  = False,
   ) : 
   """ 
   Basic infos model
@@ -42,7 +42,7 @@ def create_model_basic_infos( 	ns_,
   if need_licence == True : 
     schema = doc_basics_licence 
 
-  basic_infos		= fields.Nested(
+  basic_infos = fields.Nested(
     ns_.model( model_name , schema ),
     description = "basic infos about the document"
   )
@@ -51,7 +51,7 @@ def create_model_basic_infos( 	ns_,
 ### + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + ###
 ### MODEL / FIELD STATS
 ### + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + ###
-def create_model_field_stats(	ns_, 
+def create_model_field_stats(  ns_, 
     model_name = "Field_stats" 
   ):
   
@@ -59,15 +59,32 @@ def create_model_field_stats(	ns_,
   Field stats queries
   """
 
-  field_stats = ns_.model(model_name, stats_query_fields )
+  payload_field_model_name = model_name + "_fields_dict" 
+  # field_stats = ns_.model( model_name, stats_query_fields )
   
-  return field_stats
+  payload_field = fields.Nested( 
+    ns_.model( payload_field_model_name, stats_query_fields)
+  )
+
+  payload_fields = fields.List(
+    payload_field,
+    description = "List of {}s on this document".format(payload_field_model_name), 
+    default     = []
+  )
+
+  payload_ = ns_.model( model_name, {
+    'serie_id' : stats_serie_id,
+    'agg_fields' : payload_fields,
+  })
+  
+  return payload_
+  # return payload_fields
 
 
 ### + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + ###
 ### MODEL / FIELD UPDATE
 ### + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + ###
-def create_model_field_update(	ns_, 
+def create_model_field_update(  ns_, 
     model_name = "Field_update" 
   ):
   
@@ -76,8 +93,8 @@ def create_model_field_update(	ns_,
   """
   
   # field_update = fields.Nested( 
-  # 	ns_.model( model_name, update_field ),
-  # 	description = "update a field of a document"
+  #   ns_.model( model_name, update_field ),
+  #   description = "update a field of a document"
   # )
 
   field_update = ns_.model(model_name, update_field )
@@ -88,7 +105,7 @@ def create_model_field_update(	ns_,
 ### + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + ###
 ### MODEL / PUBLIC AUTH 
 ### + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + ###
-def create_model_public_auth(	ns_, 
+def create_model_public_auth(  ns_, 
     model_name = "Public_auth" 
   ):
   
@@ -107,7 +124,7 @@ def create_model_public_auth(	ns_,
 ### + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + ###
 ### MODEL / MULTILANGUAGE 
 ### + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + ###
-def create_model_translations(	ns_, 
+def create_model_translations(  ns_, 
     model_name = "Translations"
   ):
   
@@ -117,16 +134,16 @@ def create_model_translations(	ns_,
   
   translation = fields.Nested( 
     ns_.model( model_name, {
-      'locale'					: locale,
-      'field_to_translate'	  	: field_to_translate,
-      'translation'  				: text_translated,
+      'locale' : locale,
+      'field_to_translate' : field_to_translate,
+      'translation' : text_translated,
     })
   )
 
   translations = fields.List( 
     translation,
     description = "List of {}s on this document".format(model_name), 
-    default 		= [] 
+    default     = [] 
   ) 
 
   return translations
@@ -135,9 +152,9 @@ def create_model_translations(	ns_,
 ### + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + ###
 ### MODEL / TEAM 
 ### + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + ###
-def create_model_team(	ns_, 
-    model_name 	= "Collaborator",
-    is_light	= False
+def create_model_team(  ns_, 
+    model_name   = "Collaborator",
+    is_light  = False
   ):
   
   """
@@ -145,10 +162,10 @@ def create_model_team(	ns_,
   """
   
   team_oids = {
-      'oid_usr'	: oid_usr,
+      'oid_usr'  : oid_usr,
     }
   team_infos = {
-      'edit_auth'	: edit_auth,
+      'edit_auth'  : edit_auth,
       'added_at'  : added_at,
       'added_by'  : added_by,
     }
@@ -165,7 +182,7 @@ def create_model_team(	ns_,
   collaborators = fields.List( 
     collaborator,
     description = "List of {}s on this document".format(model_name), 
-    default 		= [] 
+    default     = [] 
   ) 
 
   return collaborators
@@ -174,7 +191,7 @@ def create_model_team(	ns_,
 ### + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + ###
 ### MODEL / about the user
 ### + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + ###
-def create_model_profile(	ns_, 
+def create_model_profile(  ns_, 
     model_name = "User_profile" 
   ):
   
@@ -189,9 +206,9 @@ def create_model_profile(	ns_,
   return profile
 
 
-def create_model_auth(	ns_, 
+def create_model_auth(  ns_, 
     model_name = "User_authorizations",
-    schema			= user_auth_in
+    schema = user_auth_in
   ):
   
   """
@@ -199,18 +216,18 @@ def create_model_auth(	ns_,
   """
 
   auth = fields.Nested( 
-      ns_.model(model_name, schema )
-    )
+    ns_.model(model_name, schema )
+  )
 
   return auth
 
 
-def create_professional_infos(	ns_, 
+def create_professional_infos(  ns_, 
     model_name = "Structures"
   ):
     
   """
-  Professional infos model	
+  Professional infos model  
   """
   
   structure_infos = fields.Nested( 
@@ -219,8 +236,8 @@ def create_professional_infos(	ns_,
 
   structures_list = fields.List( 
     structure_infos,
-    description 	= "Structure informations", 
-    default 		= [] 
+    description   = "Structure informations", 
+    default     = [] 
   ) 
 
   return structures_list
@@ -229,11 +246,11 @@ def create_professional_infos(	ns_,
 ### + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + ###
 ### MODEL / USES
 ### + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + ###
-def create_model_uses(	ns_, 	
-    model_name		= "Uses", 
+def create_model_uses(  ns_,   
+    model_name    = "Uses", 
     include_used_as = False,
-    used_as			= "tax",
-    schema_list		= ["prj","dmt","dmf","dsi","dsr","usr","rec"], 
+    used_as      = "tax",
+    schema_list    = ["prj","dmt","dmf","dsi","dsr","usr","rec"], 
   ):
 
   """
@@ -244,7 +261,7 @@ def create_model_uses(	ns_,
 
   for schema in schema_list : 
 
-    doc_uses 		= {
+    doc_uses     = {
       "used_by" : used_by,
     }
 
@@ -255,7 +272,7 @@ def create_model_uses(	ns_,
       # used_at ,
       at ,
       description = "Uses dates", 
-      default 	= [] 
+      default   = [] 
     )
 
     doc_uses["used_at"] = uses_dates
@@ -267,7 +284,7 @@ def create_model_uses(	ns_,
     uses_list = fields.List( 
       uses_infos,
       description = "Uses informations", 
-      default 	= [] 
+      default   = [] 
     ) 
   
     uses_dict["by_"+schema] = uses_list
@@ -282,31 +299,31 @@ def create_model_uses(	ns_,
 ### + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + ###
 ### MODEL / DATASETS
 ### + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + ###
-def create_model_dataset(	ns_,		
-    model_name				= "Datasets" ,
-    include_fav				= False,
-    include_dmf_open_level 	= False ,
-    display_fullname 		= False ,
-    schema					= "prj", 
-    is_light				= False,
+def create_model_dataset(  ns_,    
+    model_name        = "Datasets" ,
+    include_fav        = False,
+    include_dmf_open_level   = False ,
+    display_fullname     = False ,
+    schema          = "prj", 
+    is_light        = False,
   ) : 
   """
   Dataset model (one)
   """
   
 
-  if is_light	: 
+  if is_light  : 
     model_dataset = {
-            "oid_"+schema 	: oid_dict[schema]["field"],
-            # 'added_at'		: added_at,
-            # 'added_by'		: added_by,
-            }
+      "oid_"+schema   : oid_dict[schema]["field"],
+      # 'added_at'    : added_at,
+      # 'added_by'    : added_by,
+    }
   else : 
     model_dataset = {
-        "oid_"+schema 	: oid_dict[schema]["field"],
-        'added_at'		: added_at,
-        'added_by'		: added_by,
-        }
+      "oid_"+schema   : oid_dict[schema]["field"],
+      'added_at'    : added_at,
+      'added_by'    : added_by,
+    }
 
   if include_fav == True : 
     model_dataset["is_fav"] = is_fav
@@ -314,20 +331,20 @@ def create_model_dataset(	ns_,
   if include_dmf_open_level == True and schema in ["dmf","dsr"] :
     model_dataset["open_level"] = open_level
   
-  dataset		= fields.Nested(
+  dataset = fields.Nested(
     ns_.model( schema.title()+"_ref", model_dataset )
   )
   
   return dataset
 
 
-def create_model_datasets(	ns_,	
-      model_name				= "Datasets" ,
-      include_fav				= False,
-      include_dmf_open_level 	= False ,
-      display_fullname 		= False ,
-      schema_list				= ["prj","dmt","dmf","dsi","dsr","rec","dso","tag","func"], 
-      is_light				= False,
+def create_model_datasets(  ns_,  
+      model_name        = "Datasets" ,
+      include_fav        = False,
+      include_dmf_open_level   = False ,
+      display_fullname     = False ,
+      schema_list        = ["prj","dmt","dmf","dsi","dsr","rec","dso","tag","func"], 
+      is_light        = False,
   ) : 
   """
   Datasets model (nested)
@@ -337,19 +354,19 @@ def create_model_datasets(	ns_,
 
   for schema in schema_list : 
   
-    dataset = create_model_dataset(	ns_, 
-      model_name				= model_name, 
-      include_fav				= include_fav, 
-      include_dmf_open_level	= include_dmf_open_level,
-      display_fullname		= display_fullname,
-      schema					= schema,
-      is_light 				= is_light
+    dataset = create_model_dataset(  ns_, 
+      model_name = model_name, 
+      include_fav = include_fav, 
+      include_dmf_open_level = include_dmf_open_level,
+      display_fullname = display_fullname,
+      schema = schema,
+      is_light = is_light
     )
 
     dataset_list = fields.List( 
       dataset,
-      description 	= "List of {}s on this document".format(oid_dict[schema]["fullname"]), 
-      default 		= [] 
+      description = "List of {}s on this document".format(oid_dict[schema]["fullname"]), 
+      default = [] 
     ) 
 
     datasets_dict[schema+"_list"] = dataset_list
@@ -364,9 +381,9 @@ def create_model_datasets(	ns_,
 ### + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + ###
 ### MODEL / MAPPING
 ### + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + ###
-def create_model_mappings(	ns_,	
-    model_name	= "Mapping" ,
-    schema_list	= ["dsi_to_dmt", "map_func", "map_rec", "dmf_to_open_level"], 
+def create_model_mappings(  ns_,  
+    model_name  = "Mapping" ,
+    schema_list  = ["dsi_to_dmt", "map_func", "map_rec", "dmf_to_open_level"], 
   ) : 
   """
   Mapping model
@@ -379,17 +396,17 @@ def create_model_mappings(	ns_,
     
     ### TO DO
     
-    model_mapping 				= mapping_oid_dict[schema]
-    # model_mapping['added_at'] 	= added_at
-    # model_mapping['added_by'] 	= added_by
+    model_mapping         = mapping_oid_dict[schema]
+    # model_mapping['added_at']   = added_at
+    # model_mapping['added_by']   = added_by
     
     # if schema == "dsi_to_dmf" : 
-    # 	model_mapping['visible_dmf_list'] = fields.List(
-    # 		oid_dmf,
-    # 		description = "visible dmf list"
-    # 	)
+    #   model_mapping['visible_dmf_list'] = fields.List(
+    #     oid_dmf,
+    #     description = "visible dmf list"
+    #   )
 
-    mapping		= fields.Nested(
+    mapping    = fields.Nested(
         ns_.model( schema.title(), model_mapping ),
         description = "mapping between {}".format(schema),
       )
@@ -397,7 +414,7 @@ def create_model_mappings(	ns_,
     mapping_list = fields.List( 
       mapping,
       description = "List of {}s on this document".format(schema), 
-      default 		= [] 
+      default     = [] 
     ) 
 
     mapping_dict[schema] = mapping_list
@@ -408,9 +425,9 @@ def create_model_mappings(	ns_,
 
   return mappings
 
-def create_model_field_update_mapping(	ns_, 
-                model_name = "Mapping_update" 
-              ):
+def create_model_field_update_mapping(  ns_, 
+    model_name = "Mapping_update" 
+  ):
   
   """
   Field update
@@ -424,7 +441,7 @@ def create_model_field_update_mapping(	ns_,
 ### + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + ###
 ### MODEL / SOLIDIFY
 ### + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + ###
-def create_model_solidify_run_params(	ns_, 
+def create_model_solidify_run_params(  ns_, 
     model_name = "Solidify_run_params" 
   ):
   
@@ -439,9 +456,9 @@ def create_model_solidify_run_params(	ns_,
 ### + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + ###
 ### MODEL / MODIFICATIONS LOG
 ### + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + ###
-def create_model_modif_log(		ns_, 
-    model_name 	= "Modification", 
-    schema		= modification_full, 
+def create_model_modif_log(    ns_, 
+    model_name   = "Modification", 
+    schema    = modification_full, 
   ) :
 
   """ 
@@ -454,21 +471,21 @@ def create_model_modif_log(		ns_,
         ns_.model( model_name, schema )
     ),
     description = "List of the {}s on this document".format(model_name), 
-    default			= [] 
+    default      = [] 
   )
 
   return modifications
 
 
-def create_model_log(	ns_, 
-    model_name 					= "Log", 
-    include_counts				= False, 
-    counts_name					= "counts",
-    include_is_running			= False,
-    include_is_loaded			= False,
-    include_src_link			= False,
-    include_is_linked_to_dmt	= False,
-    include_dso_log				= False,
+def create_model_log(  ns_, 
+    model_name           = "Log", 
+    include_counts       = False, 
+    counts_name          = "counts",
+    include_is_running   = False,
+    include_is_loaded    = False,
+    include_src_link     = False,
+    include_is_linked_to_dmt = False,
+    include_dso_log      = False,
   ) :
 
   """ 
@@ -476,21 +493,21 @@ def create_model_log(	ns_,
   """
 
   log_base = {
-        'created_at'		: created_at,
-        'created_by'		: created_by,
-      }
+    'created_at'    : created_at,
+    'created_by'    : created_by,
+  }
 
   if include_counts == True :
-    log_base[ counts_name ] 	= count
+    log_base[ counts_name ]   = count
 
   if include_is_running == True :
-    log_base[ "is_running" ] 	= is_running
+    log_base[ "is_running" ]   = is_running
 
   if include_is_loaded == True :
-    log_base[ "is_loaded" ] 	= is_loaded
+    log_base[ "is_loaded" ]   = is_loaded
 
   if include_dso_log == True :
-    log_base[ "is_buildable" ] 	= is_buildable
+    log_base[ "is_buildable" ]   = is_buildable
     log_base[ "needs_rebuild" ] = needs_rebuild
 
   ### compile the log
@@ -505,29 +522,29 @@ def create_model_log(	ns_,
 ### + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + ###
 ### MODEL / SPECS 
 ### + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + ###
-def create_model_specs(	ns_, 
-    model_name 					= "Specs", 
-    include_src_link			= False,
-    include_inherit_from_dmt	= False,
-    include_child_of_tag		= False,
-    include_is_standard			= False
+def create_model_specs(  ns_, 
+    model_name           = "Specs", 
+    include_src_link      = False,
+    include_inherit_from_dmt  = False,
+    include_child_of_tag    = False,
+    include_is_standard      = False
   ) :
   """
   Specs model 
   """
   
   specs_base = {
-          'doc_type'		: doc_type,
+          'doc_type'    : doc_type,
         }
 
   if include_is_standard == True : 
-    specs_base['is_standard']		= is_standard
+    specs_base['is_standard']    = is_standard
 
   if include_src_link == True : 
-    specs_base['src_link']		= src_link
-    specs_base['src_type']		= src_type
-    specs_base['src_parser']	= src_parser
-    specs_base['src_sep']		= src_sep
+    specs_base['src_link']    = src_link
+    specs_base['src_type']    = src_type
+    specs_base['src_parser']  = src_parser
+    specs_base['src_sep']    = src_sep
 
   ### TO DO 
   if include_inherit_from_dmt == True :
@@ -547,9 +564,9 @@ def create_model_specs(	ns_,
 ### + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + ###
 ### MODEL / DATA RAW  
 ### + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + ###
-def create_model_data_raw( 	ns_, 
-    model_name 		= "Data_raw",
-    schema			= "tag",
+def create_model_data_raw(   ns_, 
+    model_name = "Data_raw",
+    schema = "tag",
   ) : 
   """ 
   data_raw_fields model
@@ -558,12 +575,12 @@ def create_model_data_raw( 	ns_,
   if schema in ["dmf", "tag" ] : 
 
     if schema == "tag" : 
-      schema_	= f_basics_tag
+      schema_  = f_basics_tag
 
     if schema == "dmf" : 
-      schema_	= f_basics_dmf
+      schema_  = f_basics_dmf
 
-    data_raw_fields		= fields.Nested(
+    data_raw_fields    = fields.Nested(
       ns_.model( model_name , schema_ ),
       description = "Data_raw"
     )
@@ -571,22 +588,22 @@ def create_model_data_raw( 	ns_,
   if schema in [ "dsi", "dsr", "dso" ] : 
     
     ### JUST A DRAFT
-    # raw_nested_fields		= fields.Nested(
-    # 	ns_.model( model_name , { "arbitrary_field" : RawData} ),
-    # 	description = "Data_raw"
+    # raw_nested_fields    = fields.Nested(
+    #   ns_.model( model_name , { "arbitrary_field" : RawData} ),
+    #   description = "Data_raw"
     # )
 
     # raw_field = fields.List(
-    # 	RawData ,	
-    # 	description = "List of the {}s on this document".format(model_name), 
-    # 	default		= [] 
+    #   RawData ,  
+    #   description = "List of the {}s on this document".format(model_name), 
+    #   default    = [] 
     # )
 
     if schema == "dso" : 
-      schema_f	= f_headers_dso
+      schema_f  = f_headers_dso
     
     else : 
-      schema_f	= f_headers_ds
+      schema_f  = f_headers_ds
 
 
     f_coll_headers = fields.Nested(
@@ -597,22 +614,22 @@ def create_model_data_raw( 	ns_,
     f_coll_headers_list = fields.List( 
       f_coll_headers,
       description = "List of {}s on this document".format(schema), 
-      default 		= [] 
+      default     = [] 
     ) 
 
     schema_ = {
       "f_col_headers" : f_coll_headers_list,
       # "f_col_headers" : f_coll_headers,
-      "f_data"		: f_data,
+      "f_data"    : f_data,
     }
-    data_raw_fields		= fields.Nested(
+    data_raw_fields    = fields.Nested(
       ns_.model( model_name , schema_ ),
       description = "Data_raw"
     )
 
   if schema in [ "rec" ] : 
 
-    data_raw_fields		= fields.Nested(
+    data_raw_fields    = fields.Nested(
       ns_.model( model_name , f_basics_rec ),
       description = "Data_raw"
     )

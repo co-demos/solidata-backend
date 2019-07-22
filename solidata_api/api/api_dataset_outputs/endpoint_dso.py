@@ -107,7 +107,7 @@ class Dso_infos_(Resource):
 class Dso_stats_(Resource):
   
   @ns.doc('dso_stats')
-  @ns.expect([mod_stats_query], query_data_stats_arguments)
+  @ns.expect( [mod_stats_query], query_data_stats_arguments)
   # @jwt_optional
   @jwt_optional_sd
   @ns.doc(params={'doc_id': 'the dataset input oid'})
@@ -143,21 +143,35 @@ class Dso_stats_(Resource):
     ### query db from generic function 		
     query_args = query_data_stats_arguments.parse_args(request)
     log.debug("query_args : \n%s", pformat(query_args) )
-    results, response_code	= Query_db_stats (
-      ns, 
-      document_type,
-      claims,
-      query_args,
-      doc_id = doc_id,
-      is_one_stat = True,
-      roles_for_complete = ["admin"],
-			payload = ns.payload
-    )
 
-    log.debug("stats results have been retrieved ... " )
-    log.debug("results : \n%s ", pformat(results) )
+    stats_results = {
+      "msg" : "Dear user, here comes the several series you requested on this document...",
+      "query" : query_args,
+      "series" : []
+    }
+    stats_response_code = 200
 
-    return results, response_code
+    for payload_req in ns.payload : 
+      results, response_code	= Query_db_stats (
+        ns, 
+        document_type,
+        claims,
+        query_args,
+        doc_id = doc_id,
+        is_one_stat = True,
+        roles_for_complete = ["admin"],
+        payload = payload_req["agg_fields"]
+      )
+      log.debug("stats results have been retrieved ... " )
+      log.debug("results : \n%s ", pformat(results) )
+      stats_results["series"].append({
+        "serie_id" : payload_req["serie_id"],
+        "results" : results,
+      })
+
+    log.debug ("stats_results : \n%s", pformat(stats_results) )
+    # return results, response_code
+    return stats_results, stats_response_code
 
 
 @ns.doc(security='apikey')

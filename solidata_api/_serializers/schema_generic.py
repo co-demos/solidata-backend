@@ -564,7 +564,7 @@ edit_auth			= fields.String(
 # 	"guests_can_see" 	: guests_can_see,
 # 	"guests_can_edit"	: guests_can_edit
 # }
-public_auth 		= {
+public_auth = {
   "open_level_edit"	: open_level_edit,
   "open_level_show" 	: open_level_show,
 }
@@ -850,7 +850,15 @@ agg_unwind_separator = fields.String(
   default			= "-",
   required		= True,
 )
-stats_query_fields		= {
+
+stats_serie_id = fields.String(
+  description = "serie id for dashboard-like page",
+  attribute		= "serie_id",
+  example			= "-",
+  default			= "-",
+  required		= True,
+)
+stats_query_fields = {
   "agg_field" : agg_field,
   "agg_sum_type" : agg_sum_type,
   # "agg_level_group" : agg_level_group,

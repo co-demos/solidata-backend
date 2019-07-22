@@ -142,22 +142,34 @@ class Dsi_stats_(Resource):
     ### query db from generic function 		
     query_args = query_data_stats_arguments.parse_args(request)
     log.debug("query_args : \n%s", pformat(query_args) )
+    
+    stats_results = {
+      "msg" : "Dear user, here comes the several series you requested on this document...",
+      "query" : query_args,
+      "series" : []
+    }
+    stats_response_code = 200
 
-    results, response_code	= Query_db_stats (
-      ns, 
-      document_type,
-      claims,
-      query_args,
-      doc_id = doc_id,
-      is_one_stat = True,
-      roles_for_complete = ["admin"],
-			payload = ns.payload
-    )
+    for payload_req in ns.payload : 
+      results, response_code	= Query_db_stats (
+        ns, 
+        document_type,
+        claims,
+        query_args,
+        doc_id = doc_id,
+        is_one_stat = True,
+        roles_for_complete = ["admin"],
+        payload = payload_req["agg_fields"]
+      )
+      log.debug("stats results have been retrieved ... " )
+      log.debug("results : \n%s ", pformat(results) )
+      stats_results["series"].append({
+        "serie_id" : payload_req["serie_id"],
+        "results" : results,
+      })
 
-    log.debug("stats results have been retrieved ... " )
-    log.debug("results : \n%s ", pformat(results) )
-
-    return results, response_code
+    # return results, response_code
+    return stats_results, stats_response_code
 
 
 @ns.doc(security='apikey')

@@ -25,19 +25,19 @@ from solidata_api._models.models_generic import *
 
 
 class Stats_query : 
-	"""
-	Model to display / marshal 
-	stats
-	"""
+  """
+  Model to display / marshal 
+  stats
+  """
 
-	def __init__(self, ns_, document_type ) :
+  def __init__(self, ns_, document_type ) :
 
-		### SELF MODULES
-		self.generic_stats = create_model_field_stats(	
-			ns_, model_name=document_type+"_stats"
-		)
+    ### SELF MODULES
+    self.generic_stats = create_model_field_stats(	
+      ns_, model_name=document_type+"_stats"
+    )
 
-	@property
-	def model_stats_query(self): 
-		return self.generic_stats
+  @property
+  def model_stats_query(self): 
+    return self.generic_stats
 

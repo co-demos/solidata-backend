@@ -269,15 +269,17 @@ def Query_db_stats (
     log.debug( "q_aggregate : \n%s", pformat(q_aggregate) )
     results = db_collection.aggregate(q_aggregate)
     message = "stats required for this {}".format(document_type_full)
+
+    
     document_out = list(results)
 
     ### transform list of results as series (e.g. for apexChart format)
-    if as_series : 
-      log.debug( "as_series : %s", as_series )
-      serie_format = query_args.get('serie_format', "apexCharts" )
-      log.debug( "serie_format : %s", serie_format )
+    # if as_series : 
+    #   log.debug( "as_series : %s", as_series )
+    #   serie_format = query_args.get('serie_format', "apexCharts" )
+    #   log.debug( "serie_format : %s", serie_format )
 
-      ### TO DO ...
+    #   ### TO DO ...
 
 
 
