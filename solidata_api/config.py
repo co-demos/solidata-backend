@@ -57,7 +57,7 @@ def formatEnvVar(var_name, format_type='boolean', separator=',', dict_separator=
 ### + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + ###
 
 # config_name    = os.getenv('FLASK_CONFIGURATION', 'default')
-config_name    = os.getenv('RUN_MODE',     'default')
+config_name    = os.getenv('RUN_MODE',     'dev')
 config_mongodb = os.getenv('MONGODB_MODE', 'local')
 config_docker  = os.getenv('DOCKER_MODE',  'docker_off')
 config_auth    = os.getenv('AUTH_MODE',    'internal')
