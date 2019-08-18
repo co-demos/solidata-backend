@@ -74,7 +74,7 @@ class Dsi_infos_(Resource):
 
     ### check client identity and claims
     # claims = get_jwt_claims() 
-    claims = returnClaims()
+    claims = returnClaims(is_optional=True)
     log.debug("claims : \n %s", pformat(claims) )
 
 
@@ -130,7 +130,7 @@ class Dsi_stats_(Resource):
     document_stat_type = "dsi_doc"
 
     ### check client identity and claims
-    claims = returnClaims()
+    claims = returnClaims(is_optional=True)
     log.debug("claims : \n %s", pformat(claims) )
 
     # log.debug("request : \n%s", pformat(request.__dict__) )
@@ -204,7 +204,7 @@ class Dsi_List(Resource):
 
     ### check client identity and claims
     # claims = get_jwt_claims() 
-    claims = returnClaims()
+    claims = returnClaims(is_optional=True)
     # claims = returnClaims(is_optional=True)
     log.debug("claims : \n %s", pformat(claims) )
 

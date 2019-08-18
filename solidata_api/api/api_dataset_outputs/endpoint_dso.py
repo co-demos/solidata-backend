@@ -75,7 +75,7 @@ class Dso_infos_(Resource):
 
     ### check client identity and claims
     # claims = get_jwt_claims() 
-    claims = returnClaims()
+    claims = returnClaims(is_optional=True)
     log.debug("claims : \n %s", pformat(claims) )
 
 
