@@ -196,12 +196,15 @@ def returnClaims(is_optional=False, return_anonymous_as_default=True):
 
   else : 
 
-    ### internal call to get claims
-    if is_optional == True :
-      verify_jwt_in_request_optional()
-    else : 
-      verify_jwt_in_request()
+    log.debug("-@- returnClaims / local check / is_optional A : %s", is_optional)
 
+    ### internal call to get claims
+    # if is_optional == True :
+    #   verify_jwt_in_request_optional()
+    # else : 
+    #   verify_jwt_in_request()
+
+    log.debug("-@- returnClaims / local check / is_optional B : %s", is_optional)
     claims = get_jwt_claims()
 
   log.debug("-@- returnClaims / claims : \n %s", pformat(claims) )

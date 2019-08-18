@@ -205,7 +205,7 @@ class Dsi_List(Resource):
     ### check client identity and claims
     # claims = get_jwt_claims() 
     claims = returnClaims(is_optional=True)
-    # claims = returnClaims(is_optional=True)
+    # claims = returnClaims()
     log.debug("claims : \n %s", pformat(claims) )
 
 
