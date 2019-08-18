@@ -170,7 +170,7 @@ def app_runner(mode, docker, host, port, mongodb, auth_mode, rsa, anojwt, antisp
     # os.environ["FLASK_CONFIGURATION"] = str(mode)
     os.environ["RUN_MODE"] = str(mode)
     # config_name = os.getenv('FLASK_CONFIGURATION', 'dev') ### 'default' for local dev
-    config_name = os.getenv('RUN_MODE', 'dev') ### 'default' for local dev
+    config_name = os.getenv('RUN_MODE', 'dev') ### 'dev' for local dev
     log.debug("=== config_name : %s", config_name)
 
   app_debug = app.config["DEBUG"]
