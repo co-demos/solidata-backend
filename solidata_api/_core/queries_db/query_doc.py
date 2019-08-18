@@ -14,10 +14,10 @@ from pandas.io.json import json_normalize
 from log_config import log, pformat
 log.debug("... _core.queries_db.query_doc.py ..." )
 
-from	bson.objectid 	import ObjectId
-from 	flask_restplus 	import  marshal
+from bson.objectid  import ObjectId
+from flask_restplus import  marshal
 
-from 	. 	import db_dict_by_type, Marshaller
+from 	. import db_dict_by_type, Marshaller
 from 	solidata_api._choices._choices_docs import doc_type_dict
 
 import operator
@@ -38,7 +38,6 @@ def Query_db_doc (
     page_args,
     query_args,
     roles_for_complete 	= ["admin"],
-
   ):
 
   ### DEBUGGING
@@ -73,76 +72,29 @@ def Query_db_doc (
   query_resume = {
     "document_type"	: document_type,	
     "doc_id" 				: doc_id,
-    "user_id" 			: user_id,
-    "user_role"			: user_role,
-    "page_args"			: page_args,
-    "query_args"		: query_args,
+    "user_id"       : user_id,
+    "user_role"     : user_role,
+    "page_args"     : page_args,
+    "query_args"    : query_args,
     "is_member_of_team" : False,
-    "is_creator" 		: False,
+    "is_creator"    : False,
   }
-
-  ### get pagination arguments
-  # log.debug('page_args : \n%s', pformat(page_args) )  
-  # page     = page_args.get('page', 	1 )
-  # per_page = page_args.get('per_page', 5 )
-  # if page != 1 :
-  # 	start_index		= ( page - 1 ) * per_page 
-  # 	end_index 		= start_index + per_page
-  # else : 
-  # 	start_index		= 0
-  # 	end_index 		= per_page	
-  # log.debug('start_index : %s', start_index )  
-  # log.debug('end_index   : %s', end_index )  
+  log.debug('query_resume : \n%s', pformat(query_resume) )  
 
   ### get query arguments
-  log.debug('query_args : \n%s', pformat(query_args) )  
-  only_f_data		= query_args.get('only_f_data',		False )
-  only_stats		= query_args.get('only_stats',		False )
-  # slice_f_data	= query_args.get('slice_f_data',	True )
-  # sort_by				= query_args.get('sort_by',				None )
-  # descending		= query_args.get('descending',		False )
-  # shuffle_seed	= query_args.get('shuffle_seed',	None )
-  q_normalize		= query_args.get('normalize',			False )
+  # log.debug('query_args : \n%s', pformat(query_args) )  
+  only_f_data  = query_args.get('only_f_data',		False )
+  only_stats   = query_args.get('only_stats',		False )
+  # slice_f_data = query_args.get('slice_f_data',	True )
+  # sort_by      = query_args.get('sort_by',				None )
+  # descending   = query_args.get('descending',		False )
+  # shuffle_seed = query_args.get('shuffle_seed',	None )
+  q_normalize  = query_args.get('normalize',			False )
 
-
-  ### TO FINISH !!!
-  """ ### prepare pipelines 
-    pipeline_queries		= {
-      "$or" : [
-        { "infos.title" : q_value_str },
-      ]
-    }
-    pipeline_accessible 	= {
-      "public_auth.open_level_show" : { 
-        "$in" : dft_open_level_show,
-      } 
-    }
-    pipeline_user_is_in_team 	= {
-      "team" : { 
-        "$elemMatch" : {
-          "oid_usr" : user_oid
-        }
-      } 
-    }
-    pipeline_user_not_in_team 	= { 
-      "public_auth.open_level_show" : { 
-        "$in" : dft_open_level_show,
-      },
-      "team" : { 
-        "$not" : {
-          "$elemMatch" : {
-            "oid_usr" : {
-              "$in" : [ user_oid ]
-            }
-          }
-        }
-      } 
-    }
-  """
 
   ### retrieve from db
   if ObjectId.is_valid(doc_id) : 
-    doc_oid	 = ObjectId(doc_id)
+    doc_oid  = ObjectId(doc_id)
     document = db_collection.find_one( {"_id": doc_oid })
     # log.debug( "document._id : %s", str(document["_id"]) )
     # log.debug( "document : \n%s", pformat(document) )
@@ -185,12 +137,12 @@ def Query_db_doc (
 
       ### append "f_data" if doc is in ["dsi", "dsr", "dsr"]
       document_out = GetFData( document_type, 
-            can_access_complete, not_filtered,
-            document, document_out, doc_oid, doc_open_level_show,
-            team_oids, created_by_oid, roles_for_complete, user_role, user_oid,
-            page_args, query_args,
-            # shuffle_seed, sort_by, slice_f_data, 
-            # start_index, end_index
+        can_access_complete, not_filtered,
+        document, document_out, doc_oid, doc_open_level_show,
+        team_oids, created_by_oid, roles_for_complete, user_role, user_oid,
+        page_args, query_args,
+        # shuffle_seed, sort_by, slice_f_data, 
+        # start_index, end_index
       )
       message = "dear user, there is the complete {} you requested ".format(document_type_full)
 
@@ -214,12 +166,12 @@ def Query_db_doc (
 
         ### append "f_data" if doc is in ["dsi", "dsr", "dsr"]
         document_out = GetFData( document_type, 
-              can_access_complete, not_filtered,
-              document, document_out, doc_oid, doc_open_level_show,
-              team_oids, created_by_oid, roles_for_complete, user_role, user_oid,
-              page_args, query_args,
-              # shuffle_seed, sort_by, slice_f_data, 
-              # start_index, end_index
+          can_access_complete, not_filtered,
+          document, document_out, doc_oid, doc_open_level_show,
+          team_oids, created_by_oid, roles_for_complete, user_role, user_oid,
+          page_args, query_args,
+          # shuffle_seed, sort_by, slice_f_data, 
+          # start_index, end_index
         )
         message = "dear user, there is the {} you requested given your credentials".format(document_type_full)
 
@@ -238,18 +190,18 @@ def Query_db_doc (
 
   else : 
     ### no document / empty response
-    response_code	= 404
-    message 			= "dear user, there is no {} with this oid : {}".format(document_type_full, doc_id) 
+    response_code = 404
+    message       = "dear user, there is no {} with this oid : {}".format(document_type_full, doc_id) 
     document_out  = None
 
 
   log.debug('query_resume : \n%s', pformat(query_resume)) 
   # log.debug( 'document_out["data_raw"]["f_data"][0] : \n%s', pformat(document_out["data_raw"]["f_data"][0]) )
-  log.debug( 'document_out : \n%s', pformat(document_out) )
+  # log.debug( 'document_out : \n%s', pformat(document_out) )
 
   ### return response
   return {
-        "msg" 	: message,
-        "data"	: document_out,
-        "query"	: query_resume,
-      }, response_code
+    "msg"   : message,
+    "data"  : document_out,
+    "query" : query_resume,
+  }, response_code

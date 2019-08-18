@@ -10,14 +10,14 @@ log.debug("... _core.queries_db.query_build_dso.py ..." )
 import pandas as pd
 import numpy as np
 
-from  	datetime import datetime, timedelta
-from	bson.objectid 	import ObjectId
-from 	flask_restplus 	import  marshal
+from  datetime import datetime, timedelta
+from  bson.objectid   import ObjectId
+from  flask_restplus   import  marshal
 
-from 	. 	import db_dict_by_type, Marshaller
-from 	solidata_api._choices._choices_docs import doc_type_dict
-from 	solidata_api._core.utils import merge_by_key, chain
-from 	solidata_api._core.pandas_ops import pd, concat_dsi_list, prj_dsi_mapping_as_df
+from   . import db_dict_by_type, Marshaller
+from   solidata_api._choices._choices_docs import doc_type_dict
+from   solidata_api._core.utils import merge_by_key, chain
+from   solidata_api._core.pandas_ops import pd, concat_dsi_list, prj_dsi_mapping_as_df
 
   
 ### + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + ###
@@ -30,8 +30,8 @@ def Query_db_build_dso (
     models,
     doc_id,
     claims,
-    roles_for_complete 	= ["admin"],
-    payload				= {}
+    roles_for_complete   = ["admin"],
+    payload        = {}
   ):
 
   print()
@@ -39,47 +39,47 @@ def Query_db_build_dso (
   log.debug("... _core.queries_db.query_build_doc.py ..." )
 
   ### get mongodb collections
-  prj_collection			= db_dict_by_type['prj']
-  dmt_collection			= db_dict_by_type['dmt']
-  dmf_collection			= db_dict_by_type['dmf']
-  dsi_collection			= db_dict_by_type['dsi']
-  dsi_doc_collection	= db_dict_by_type['dsi_doc']
-  dso_collection			= db_dict_by_type['dso']
-  dso_doc_collection	= db_dict_by_type['dso_doc']
+  prj_collection      = db_dict_by_type['prj']
+  dmt_collection      = db_dict_by_type['dmt']
+  dmf_collection      = db_dict_by_type['dmf']
+  dsi_collection      = db_dict_by_type['dsi']
+  dsi_doc_collection  = db_dict_by_type['dsi_doc']
+  dso_collection      = db_dict_by_type['dso']
+  dso_doc_collection  = db_dict_by_type['dso_doc']
 
-  prj_type_full 			= doc_type_dict['prj']
-  dso_type_full 			= doc_type_dict['dso']
+  prj_type_full       = doc_type_dict['prj']
+  dso_type_full       = doc_type_dict['dso']
 
-  user_id = user_oid	= None
-  user_role						= "anonymous"
-  document_out				= None
-  message 						= None
-  response_code				= 200
+  user_id = user_oid  = None
+  user_role           = "anonymous"
+  document_out        = None
+  message             = None
+  response_code       = 200
 
   if claims or claims!={}  :
     user_role = claims["auth"]["role"]
-    user_id	 	= claims["_id"] ### get the oid as str
+    user_id = claims["_id"] ### get the oid as str
     if user_role != "anonymous" : 
-      user_oid 	= ObjectId(user_id)
+      user_oid   = ObjectId(user_id)
       log.debug("user_oid : %s", user_oid )
 
   ### retrieve PRJ from db
   if ObjectId.is_valid(doc_id) : 
-    doc_oid			= ObjectId(doc_id)
-    doc_prj 		= prj_collection.find_one( {"_id": doc_oid } )
+    doc_oid = ObjectId(doc_id)
+    doc_prj = prj_collection.find_one( {"_id": doc_oid } )
     log.debug( "doc_prj PRJ : \n%s", pformat(doc_prj) )
   else :
-    response_code	= 400
-    doc_prj		= None
+    response_code = 400
+    doc_prj = None
 
   ### sum up all query arguments
   query_resume = {
-    "document_type"			: 'prj',	
-    "doc_id" 						: doc_id,
-    "user_id" 					: user_id,
-    "user_role"					: user_role,
-    "is_member_of_team" : False,
-    "payload" 					: payload
+    "document_type"      : 'prj',  
+    "doc_id"             : doc_id,
+    "user_id"            : user_id,
+    "user_role"          : user_role,
+    "is_member_of_team"  : False,
+    "payload"            : payload
   }
 
   ### if prj exists
@@ -113,22 +113,22 @@ def Query_db_build_dso (
       ### + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + ###
       ### copy main infos from PRJ
       ### + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + ###
-      dso_in['_id'] 				= doc_oid
-      dso_in['infos'] 			= doc_prj["infos"]
-      dso_in['specs'] 			= {"doc_type" : "dso"}
-      dso_in['public_auth']	= doc_prj["public_auth"]
-      dso_in['datasets'] 		= doc_prj["datasets"]
-      dso_in['team'] 				= doc_prj["team"]
-      dso_in['mapping'] 		= doc_prj["mapping"]
+      dso_in['_id']         = doc_oid
+      dso_in['infos']       = doc_prj["infos"]
+      dso_in['specs']       = {"doc_type" : "dso"}
+      dso_in['public_auth'] = doc_prj["public_auth"]
+      dso_in['datasets']    = doc_prj["datasets"]
+      dso_in['team']        = doc_prj["team"]
+      dso_in['mapping']     = doc_prj["mapping"]
 
       ### update auto_fields 
       dso_auto_fields = { 
-        "log"			: { 
-          "created_at"	: datetime.utcnow(),
-          "created_by"	: user_oid,
+        "log" : { 
+          "created_at"  : datetime.utcnow(),
+          "created_by"  : user_oid,
         },
-        "uses"			: {
-          "by_prj"		: [ 
+        "uses" : {
+          "by_prj" : [ 
             {
               "used_by" : doc_oid,
               "used_at" : [ 
@@ -150,13 +150,13 @@ def Query_db_build_dso (
       if len(dmt_refs) > 0 : 
         dmt_oid = dmt_refs[0]["oid_dmt"]
         # log.debug( "dmt_oid : %s", pformat(dmt_oid) )
-        dmt_doc	= dmt_collection.find_one({"_id" : dmt_oid }) 
+        dmt_doc  = dmt_collection.find_one({"_id" : dmt_oid }) 
         # log.debug( "dmt_doc : \n%s", pformat(dmt_doc) )
 
         ### get dmt's dmfs (if not empty) - from dmt/datasets/dmf_list
         dmt_dmf_refs = dmt_doc["datasets"]["dmf_list"]
         if len(dmt_dmf_refs) > 0 :
-          dmf_oids = [ dmf_ref["oid_dmf"] for dmf_ref in dmt_dmf_refs ]			
+          dmf_oids = [ dmf_ref["oid_dmf"] for dmf_ref in dmt_dmf_refs ]      
           # log.debug( "len(dmf_oids) : %s", len(dmf_oids) )
           # log.debug( "dmf_oids : \n%s", pformat(dmf_oids) )
           dmf_list_cursor = dmf_collection.find({"_id" : {"$in" : dmf_oids} })
@@ -167,12 +167,12 @@ def Query_db_build_dso (
           dmf_list = list(dmf_list_cursor)
           # print()
           # for d in dmf_list : 
-          # 	log.debug("d['_id'] : %s", d['_id'] )
-          # 	log.debug("d['infos']['title'] : %s", d['infos']['title'] )
+          #   log.debug("d['_id'] : %s", d['_id'] )
+          #   log.debug("d['infos']['title'] : %s", d['infos']['title'] )
           # print()
 
           ### dmf_list_light (referenced dmf for prj' dmt ) -> just list of pure oid_dmf from dmf_list (aka prj's dmt)
-          dmf_list_light 	= [ d['_id'] for d in dmf_list ]
+          dmf_list_light   = [ d['_id'] for d in dmf_list ]
           log.debug( "dmf_list_light - prj's dmt's dmfs - from dmt/datasets/dmf_list : \n%s", pformat(dmf_list_light) )
 
 
@@ -194,11 +194,11 @@ def Query_db_build_dso (
             log.debug( "dmf_list_from_map : \n%s", pformat(dmf_list_from_map) )
 
             ### get prj's dmfs' headers (if not empty) - from dmf_list (aka prj's dmt)
-            headers_dso_from_dmf_list 	= [ 
-              { 	
+            headers_dso_from_dmf_list   = [ 
+              {   
                 "oid_dmf" : d["_id"] , 
-                "f_type" 	: d["data_raw"]["f_type"],
-                "f_code" 	: d["data_raw"]["f_code"],
+                "f_type"  : d["data_raw"]["f_type"],
+                "f_code"  : d["data_raw"]["f_code"],
                 "f_title" : d["infos"]["title"]
               } 
               for d in dmf_list if d["_id"] in dmf_list_from_map 
@@ -206,7 +206,7 @@ def Query_db_build_dso (
             log.debug( "headers_dso_from_dmf_list : \n%s", pformat(headers_dso_from_dmf_list) )
 
             ### merge prj_dmf_mapping_ and headers_dso_from_dmf_list
-            headers_dso 			= list( merge_by_key( chain( prj_dmf_mapping_, headers_dso_from_dmf_list), 'oid_dmf') )
+            headers_dso = list( merge_by_key( chain( prj_dmf_mapping_, headers_dso_from_dmf_list), 'oid_dmf') )
             log.debug( "headers_dso : \n%s", pformat(headers_dso) )
 
             ### copy headers to dso_in
@@ -235,10 +235,6 @@ def Query_db_build_dso (
               log.debug( "dsi_list : \n%s", pformat(dsi_list) )
 
               ### prj_dsi_mapping to df + index
-              # df_mapper_dsi_to_dmf = pd.DataFrame(prj_dsi_mapping)
-              # dsi_mapped_list		 = list(df_mapper_dsi_to_dmf["oid_dsi"])
-              # df_mapper_dsi_to_dmf = df_mapper_dsi_to_dmf.set_index(["oid_dsi","oid_dmf"])
-              # print()
               # log.debug("... df_mapper_dsi_to_dmf ...")
               # print(df_mapper_dsi_to_dmf)
               dsi_mapped_list, df_mapper_dsi_to_dmf = prj_dsi_mapping_as_df(prj_dsi_mapping)
@@ -247,6 +243,7 @@ def Query_db_build_dso (
               ### get all dsis' f_data
               dsi_raw_data_list = []
               for dsi in dsi_list :
+
                 ### check if at least one field of this dsi is mapped in df_mapper_dsi_to_dmf
                 if dsi["_id"] in dsi_mapped_list : 
                   # initiate dsi_data_raw
@@ -256,16 +253,20 @@ def Query_db_build_dso (
                   }
                   # get corresponding docs in dsi_doc_collection
                   dsi_docs = list(dsi_doc_collection.find({"oid_dsi" : dsi["_id"] }))
+                  
                   # store as dataframe
                   dsi_f_data = pd.DataFrame(dsi_docs)
-                  dsi_f_data_cols	= list(dsi_f_data.columns.values)
+                  dsi_f_data_cols  = list(dsi_f_data.columns.values)
+                  log.debug( "dsi_f_data_cols : \n%s", pformat(dsi_f_data_cols) )
+
                   f_col_headers_for_df = [ h for h in dsi_f_data_cols if h != "_id" ]
                   dsi_f_data = dsi_f_data[ f_col_headers_for_df ]
+
                   f_data = dsi_f_data.to_dict('records')
                   dsi_data_raw["f_data"] = f_data
 
-                  # dsi_data_raw = dsi["data_raw"]
                   dsi_raw_data_list.append( { "oid_dsi" : dsi["_id"], "data_raw" : dsi_data_raw } )
+              
               # log.debug( "dsi_raw_data_list : \n%s", pformat(dsi_raw_data_list) )
 
               ### reindex and concatenate all f_data from headers_dso and df_mapper_dsi_to_dmf with pandas
@@ -310,10 +311,10 @@ def Query_db_build_dso (
               log.debug("... dso_f_data is composed ...")
 
               ### copy f_data to dso_in
-              # dso_in["data_raw"]["f_data"] 	= dso_f_data
+              # dso_in["data_raw"]["f_data"]   = dso_f_data
 
               ### flag dso as loaded
-              dso_in["log"]["is_loaded"] 		= True
+              dso_in["log"]["is_loaded"]     = True
 
 
             else : 
@@ -339,6 +340,7 @@ def Query_db_build_dso (
         print()
         log.debug("k : %s / type(k) : %s" %(k, type(k)))
         log.debug("v : %s / type(v) : %s" %(v, type(v)))
+      print()
       log.debug("... preparing to replace / insert dso_in ...")
 
       _id = dso_collection.replace_one( {"_id" : doc_oid }, dso_in, upsert=True )
@@ -365,8 +367,8 @@ def Query_db_build_dso (
 
 
 
-      document_out 	= marshal( dso_in, models["model_doc_out"] )
-      message 			= "the {} corresponding to the {} has been rebuilt".format(dso_type_full, prj_type_full) 
+      document_out = marshal( dso_in, models["model_doc_out"] )
+      message      = "the {} corresponding to the {} has been rebuilt".format(dso_type_full, prj_type_full) 
 
 
     # TO DO 
@@ -387,19 +389,19 @@ def Query_db_build_dso (
         message = "dear user, there is the {} you requested given your credentials".format(prj_type_full)
 
       else : 
-        response_code	= 401
+        response_code  = 401
         ### unvalid credentials / empty response
         message = "dear user, you don't have the credentials to build a dso from this {} with this oid : {}".format(prj_type_full, doc_id) 
 
 
   else : 
     ### no doc_prj / empty response
-    response_code	= 404
-    message 		= "dear user, there is no {} with this oid : {}".format(prj_type_full, doc_id) 
+    response_code = 404
+    message = "dear user, there is no {} with this oid : {}".format(prj_type_full, doc_id) 
 
   ### return response
   return {
-        "msg" 	: message ,
-        # "data"	: document_out,
-        "query"	: query_resume,
-      }, response_code
+    "msg"   : message ,
+    # "data"  : document_out,
+    "query"  : query_resume,
+  }, response_code

@@ -14,12 +14,12 @@ from pandas.io.json import json_normalize
 from log_config import log, pformat
 log.debug("... _core.queries_db.query_doc.py ..." )
 
-from	bson.objectid 	import ObjectId
-from 	flask_restplus 	import  marshal
+from bson.objectid   import ObjectId
+from flask_restplus   import  marshal
 
-from 	. 	import db_dict_by_type, Marshaller
-from 	solidata_api._choices._choices_docs import doc_type_dict
-from 	solidata_api._choices._choices_f_types import dmf_types_list, dmf_type_categ
+from . import db_dict_by_type, Marshaller
+from solidata_api._choices._choices_docs import doc_type_dict
+from solidata_api._choices._choices_f_types import dmf_types_list, dmf_type_categ
 from solidata_api._core.pandas_ops.pd_utils import *
 
 import operator
@@ -40,6 +40,19 @@ def weighted(nb):
     return str(nb)
   # return -float('inf') if nb is None else nb
 
+def append_search_for_to_query(query, search_for) : 
+
+  log.debug( "query : \n%s", pformat(query) )
+  log.debug( "search_for : \n%s", pformat(search_for) )
+
+  if search_for != None and search_for != [] and search_for != [''] and search_for != '' :
+    search_for = [ s for s in search_for if s!= "" ]
+    search_words = [ "\""+word+"\"" for word in search_for ] ### "\"<word>\"" means AND operrator on text search
+    query["$text"] = { 
+      "$search" : u" ".join(search_words) 
+    }
+  log.debug( "query : \n%s", pformat(query) )
+  return query
 
 def append_filters_to_query(query, search_filters, splitter="__") : 
   """
@@ -47,7 +60,8 @@ def append_filters_to_query(query, search_filters, splitter="__") :
   """
   filters_dict = {}
 
-  if search_filters != None :
+  if search_filters != None and search_filters != "" and search_filters != [] :
+    search_filters = [ s for s in search_filters if s != "" ]
     for q in search_filters : 
       splitted = q.split(splitter)
       filters_field = { splitted[0] : [] }
@@ -92,17 +106,16 @@ def build_first_term_query(ds_oid, query_args, field_to_query="oid_dso") :
 
   log.debug('query_args : \n%s', pformat(query_args) )  
 
-  search_for 		= query_args.get('search_for',	 	None )
-  search_in 		= query_args.get('search_in', 		None )
-  search_int 		= query_args.get('search_int', 		None )
-  search_float 	= query_args.get('search_float', 	None )
-  search_tags 	= query_args.get('search_tags', 	None )
-  item_id 			= query_args.get('item_id', 			None )
-  is_complete 	= query_args.get('is_complete', 	None )
+  search_for     = query_args.get('search_for',     None )
+  # search_in      = query_args.get('search_in',    None )
+  # search_int     = query_args.get('search_int',   None )
+  # search_float   = query_args.get('search_float', None )
+  search_tags    = query_args.get('search_tags',   None )
+  item_id        = query_args.get('item_id',       None )
+  is_complete    = query_args.get('is_complete',   None )
   search_filters = query_args.get('search_filters', [] )
 
 
-  ### TO FINISH ...
   ### append filters
   if search_filters != None and search_filters != [] : 
     query = append_filters_to_query( query, search_filters )
@@ -122,13 +135,14 @@ def build_first_term_query(ds_oid, query_args, field_to_query="oid_dso") :
 
   ### search by content --> collection need to be indexed
   # cf : https://stackoverflow.com/questions/6790819/searching-for-value-of-any-field-in-mongodb-without-explicitly-naming-it
-  if search_for != None and search_for != [] and search_for != [''] :
-    search_words = [ "\""+word+"\"" for word in search_for ]
-    q_search_for = { "$text" : 
-              { "$search" : u" ".join(search_words) } # doable because text fields are indexed at main.py
-    }
-    query.update(q_search_for)
-  
+  # if search_for != None and search_for != [] and search_for != [''] :
+  #   search_words = [ "\""+word+"\"" for word in search_for ]
+  #   q_search_for = { "$text" : 
+  #     { "$search" : u" ".join(search_words) } # doable because text fields are indexed at main.py
+  #   }
+  #   query.update(q_search_for)
+  query = append_search_for_to_query( query, search_for )
+
   return query
 
 def build_projected_fields(ignore_fields_list=[], keep_fields_list=[] ) :
@@ -150,7 +164,7 @@ def build_projected_fields(ignore_fields_list=[], keep_fields_list=[] ) :
     
     # add fields to ignore
     if ignore_fields_list != [] :
-      ignore_fields = { f : 0 for f in ignore_fields_list }
+      ignore_fields = { f : 0 for f in ignore_fields_list } ### always keep _id field
       projected_fields.update( ignore_fields )
     
     # add fields to retrieve
@@ -174,24 +188,31 @@ def get_ds_docs(doc_oid, query_args, db_coll="dso_doc", f_col_headers=[] ) :
   keep_fields_list = []
   ignore_fields_list = []
 
-  map_list = query_args.get('map_list',	False )
-  get_filters = query_args.get('get_filters',	False )
-  get_uniques = query_args.get('get_uniques',	None )
-  shuffle_seed = query_args.get('shuffle_seed',	None )
+  map_list = query_args.get('map_list',  False )
+  get_filters = query_args.get('get_filters',  False )
+  get_uniques = query_args.get('get_uniques',  None )
+  shuffle_seed = query_args.get('shuffle_seed',  None )
+  fields_to_return = query_args.get('fields_to_return',  None )
 
   if db_coll == "dso_doc" :
     field_to_query = "oid_dso"
+
   if db_coll == "dsi_doc" :
     field_to_query = "oid_dsi"
 
-  ds_doc_collection	= db_dict_by_type[db_coll]
+  ds_doc_collection  = db_dict_by_type[db_coll]
 
   query = build_first_term_query(doc_oid, query_args, field_to_query=field_to_query)
   log.debug('query : \n%s', pformat(query) )  
   
+  ### minimal fields list for map request
   if map_list : 
-    keep_fields_list = ["_id", field_to_query, "lat", "lon"]
+    keep_fields_list += ['_id', field_to_query, "lat", "lon"]
+    if fields_to_return : 
+      for return_field in fields_to_return : 
+        keep_fields_list.append(return_field)
   
+  ### 
   if get_filters and db_coll == "dso_doc" :
     if get_uniques == None : 
       list_filters = dmf_type_categ
@@ -199,15 +220,15 @@ def get_ds_docs(doc_oid, query_args, db_coll="dso_doc", f_col_headers=[] ) :
       list_filters = [ get_uniques ]
     keep_fields_list = [ h["f_title"] for h in f_col_headers if h["f_type"] in list_filters ]
   
-  log.debug('keep_fields_list : \n%s', pformat(keep_fields_list) )  
+  log.debug( 'keep_fields_list : \n%s', pformat(keep_fields_list) )  
   projected_fields = build_projected_fields(ignore_fields_list, keep_fields_list)
-  log.debug('projected_fields : \n%s', pformat(projected_fields) )  
+  log.debug( 'projected_fields : \n%s', pformat(projected_fields) )  
 
   # results = ds_doc_collection.find({'oid_dso' : doc_oid })
   cursor = ds_doc_collection.find(query, projected_fields)
 
   results = list(cursor)
-  log.debug('results[0] : \n%s', pformat(results[0]) )  
+  # log.debug('results[0] : \n%s', pformat(results[0]) )  
 
 
   if get_filters : 
@@ -222,23 +243,26 @@ def get_ds_docs(doc_oid, query_args, db_coll="dso_doc", f_col_headers=[] ) :
   ### shuffle results
   if shuffle_seed != None and map_list == False and get_filters == False:
     random.seed(shuffle_seed)
-    random.shuffle(document_out["data_raw"]["f_data"])
+    # random.shuffle(document_out["data_raw"]["f_data"])
+    random.shuffle(results)
 
 
-
+  # log.debug('results[0] : \n%s', pformat(results[0]) )  
 
 
   return results
 
-def strip_f_data(	data_raw, 
-                  doc_open_level_show, 
-                  team_oids,
-                  created_by_oid,
-                  roles_for_complete, 
-                  user_role, 
-                  user_oid,
-                  document_type="dso"
-                ):
+def strip_f_data(  data_raw, 
+    doc_open_level_show, 
+    team_oids,
+    created_by_oid,
+    roles_for_complete, 
+    user_role, 
+    user_oid,
+    document_type="dso",
+    map_list=False,
+    fields_to_return=None
+  ):
   """ 
   TO DO 
   strip f_data from fields not authorized for user
@@ -248,8 +272,12 @@ def strip_f_data(	data_raw,
   print("-+- "*40)
   log.debug( "... strip_f_data " )
 
+  log.debug( "... strip_f_data / map_list : %s", map_list )
+  log.debug( "... strip_f_data / fields_to_return : \n%s", pformat(fields_to_return) )
+
+  f_data        = data_raw["f_data"]
   f_col_headers = data_raw["f_col_headers"] 
-  f_data 				= data_raw["f_data"]
+  log.debug('f_col_headers : \n%s', pformat(f_col_headers) )  
 
   ### load f_data as dataframe
   f_data_df = pd.DataFrame(f_data)
@@ -259,6 +287,8 @@ def strip_f_data(	data_raw,
 
   ### select f_col_headers given user auth
   if document_type == "dso" : 
+
+    field_oid_ref = "oid_dso"
 
     if user_role == 'anonymous' : 
       f_col_headers_selected = [ h for h in f_col_headers if h["open_level_show"] in ["open_data"] ]
@@ -275,26 +305,61 @@ def strip_f_data(	data_raw,
     else : 
       f_col_headers_selected = [ h for h in f_col_headers if h["open_level_show"] in ["open_data", "commons"] ]
 
-      # log.debug('f_col_headers_selected : \n%s', pformat(f_col_headers_selected) )  
 
   elif document_type == "dsi" : 
-    f_col_headers_selected = f_col_headers 
-    
+
+    field_oid_ref = "oid_dsi"
+
+    f_col_headers_selected = f_col_headers
+
+  log.debug('f_col_headers_selected : \n%s', pformat(f_col_headers_selected) )  
+
+  
+
+  ### build f_col_headers_for_df
   f_data_cols = list(f_data_df.columns.values)
   log.debug('f_data_cols : \n%s', pformat(f_data_cols) )  
 
   if document_type == "dsi" : 
-    f_col_headers_for_df 	= [ h["f_coll_header_val"] for h in f_col_headers_selected ]
+    f_col_headers_for_df = [ h["f_coll_header_val"] for h in f_col_headers_selected ]
+
   elif document_type == "dso" : 
-    f_col_headers_for_df 	= [ h["f_title"] for h in f_col_headers_selected if h["f_title"] in f_data_cols ]
-    
+    f_col_headers_for_df = [ h["f_title"] for h in f_col_headers_selected if h["f_title"] in f_data_cols ]
+    f_col_headers_for_df.append("oid_dsi")
+
+  # simplify returned fields if map_list
+  if map_list :
+    # f_col_headers_for_df = [ field_oid_ref, 'lat', 'lon' ]
+    f_col_headers_for_df = [ 'lat', 'lon' ]
+
+  # simplify returned fields if fields_to_return list
+  if fields_to_return :
+    if map_list :
+      f_col_headers_for_df += [ f for f in fields_to_return if f in f_data_cols ]
+    else :
+      f_col_headers_for_df = [ f for f in fields_to_return if f in f_data_cols ]
+
+
+  ### stringify oid_dso | oid_dsi field
+  if field_oid_ref in f_data_cols :
+    f_data_df[field_oid_ref] = f_data_df[field_oid_ref].apply(lambda x: str(x))
+    if "oid_dsi" in f_col_headers_for_df and field_oid_ref == "oid_dso" : 
+      f_data_df["oid_dsi"] = f_data_df["oid_dsi"].apply(lambda x: str(x))
+      # f_data_df = f_data_df.rename( index=str, columns = {"oid_dsi" : "sd_id_dsi"})
+
+
   ### append "_id" column to authorized columns
   f_data_df["_id"] = f_data_df["_id"].apply(lambda x: str(x))
   f_data_df = f_data_df.rename( index=str, columns = {"_id" : "sd_id"})
   f_col_headers_for_df.append("sd_id")
+  f_col_headers_for_df = [ f for f in f_col_headers_for_df if f != '_id' ]
 
   log.debug('f_col_headers_for_df : \n%s', pformat(f_col_headers_for_df) )  
   f_data_df_out = f_data_df[ f_col_headers_for_df ]
+
+
+
+
 
   ### clean f_data_df_out from NaNs
   # f_data_df_out = f_data_df_out.dropna(how="all")
@@ -328,10 +393,10 @@ def search_for_str( search_str, row) :
   row_check = row.str.contains(search_reg, case=False, regex=True)
   
   # if row.dtype.kind == 'O' : 
-  # 	log.debug( "search_str : %s", search_str )
-  # 	log.debug( "row : \n%s", row )
-  # 	print ("- - -")
-  # 	log.debug( "row_check : \n%s", row_check )
+  #   log.debug( "search_str : %s", search_str )
+  #   log.debug( "row : \n%s", row )
+  #   print ("- - -")
+  #   log.debug( "row_check : \n%s", row_check )
 
   return row_check
 
@@ -349,12 +414,12 @@ def search_f_data (data_raw, query_args, not_filtered=True) :
     ### f_data is not a filtered result from direct db query
 
     log.debug('query_args : \n%s', pformat(query_args) )  
-    search_for 		= query_args.get('search_for',	 	None )
-    search_in 		= query_args.get('search_in', 		None )
-    search_int 		= query_args.get('search_int', 		None )
-    search_float 	= query_args.get('search_float', 	None )
-    item_id 			= query_args.get('item_id', 			None )
-    is_complete 	= query_args.get('is_complete', 	None )
+    search_for    = query_args.get('search_for',     None )
+    # search_in     = query_args.get('search_in',     None )
+    # search_int   = query_args.get('search_int',     None )
+    # search_float = query_args.get('search_float',   None )
+    item_id       = query_args.get('item_id',       None )
+    is_complete   = query_args.get('is_complete',   None )
 
     ### use pandas to retrieve search results from 
     f_data_df = pd.DataFrame(f_data)
@@ -377,14 +442,14 @@ def search_f_data (data_raw, query_args, not_filtered=True) :
 
 def latLngTuple(f_data, query_args) : 
 
-  map_list	= query_args.get('map_list',	False )
+  map_list  = query_args.get('map_list',  False )
   
   ### map listing required
   if map_list : 
 
-    as_latlng	= query_args.get('as_latlng',	False )
-    geo_precision	= query_args.get('geo_precision',	6 )
-    only_geocoded	= query_args.get('only_geocoded',	True )
+    as_latlng  = query_args.get('as_latlng',  False )
+    geo_precision  = query_args.get('geo_precision',  6 )
+    only_geocoded  = query_args.get('only_geocoded',  True )
 
     f_data_tupled = []
 
@@ -417,40 +482,44 @@ def latLngTuple(f_data, query_args) :
   return f_data_tupled
 
 def GetFData( document_type, 
-              can_access_complete, not_filtered,
-              document, document_out, doc_oid, doc_open_level_show,
-              team_oids, created_by_oid, roles_for_complete, user_role, user_oid,
-              page_args, query_args,
-            ) : 
-              # start_index, end_index
-              # shuffle_seed, sort_by, slice_f_data, 
+    can_access_complete, not_filtered,
+    document, document_out, doc_oid, doc_open_level_show,
+    team_oids, created_by_oid, roles_for_complete, user_role, user_oid,
+    page_args, query_args,
+  ) : 
+    # start_index, end_index
+    # shuffle_seed, sort_by, slice_f_data, 
   """ 
   refactoring getting f_data 
   """
   ### get pagination arguments
   log.debug('page_args : \n%s', pformat(page_args) )  
-  page     = page_args.get('page', 	1 )
-  per_page = page_args.get('per_page', 5 )
+  page         = page_args.get('page',   1 )
+  per_page     = page_args.get('per_page', 5 )
+  sort_by      = page_args.get('sort_by', None )
+  descending   = page_args.get('descending', False )
+  shuffle_seed = page_args.get('shuffle_seed',  None )
   if page != 1 :
-    start_index		= ( page - 1 ) * per_page 
-    end_index 		= start_index + per_page
+    start_index = ( page - 1 ) * per_page 
+    end_index   = start_index + per_page
   else : 
-    start_index		= 0
-    end_index 		= per_page	
+    start_index = 0
+    end_index   = per_page  
   log.debug('start_index : %s', start_index )  
   log.debug('end_index   : %s', end_index )  
 
   # ### get query arguments
   # log.debug('query_args : \n%s', pformat(query_args) )  
-  # only_f_data		= query_args.get('only_f_data',		False )
-  # only_stats		= query_args.get('only_stats',		False )
-  slice_f_data	 = query_args.get('slice_f_data',	True )
-  sort_by				 = query_args.get('sort_by',				None )
-  descending		 = query_args.get('descending',		False )
-  shuffle_seed	 = query_args.get('shuffle_seed',	None )
-  # q_normalize		= query_args.get('normalize',			False )
-  map_list			 = query_args.get('map_list',	False )
-  get_filters    = query_args.get('get_filters',	False )
+  # only_f_data    = query_args.get('only_f_data', False )
+  # only_stats     = query_args.get('only_stats', False )
+  # q_normalize    = query_args.get('normalize', False )
+  slice_f_data     = query_args.get('slice_f_data', True )
+  # sort_by          = query_args.get('sort_by', None )
+  # descending       = query_args.get('descending', False )
+  # shuffle_seed     = query_args.get('shuffle_seed',  None )
+  map_list         = query_args.get('map_list',  False )
+  get_filters      = query_args.get('get_filters', False )
+  fields_to_return = query_args.get('fields_to_return',  None )
 
   # append "f_data" if doc is in ["dsi", "dsr", "dsr"]
   if document_type in ["dsi", "dso"] and can_access_complete :
@@ -465,64 +534,67 @@ def GetFData( document_type,
     ### copy f_data
     if document_type in ["dso", "dsi"] :
         
-        ### strip f_data from not allowed fields
-        not_filtered = False
-        if document_type == "dso" :	
-          db_coll="dso_doc"
-          document_out["data_raw"]["f_col_headers"].append(
-            {	
-              'f_title' : '_id',
-              'open_level_show' : 'sd_id',
-              'f_type' : 'id'
-            }
-          )
-        elif document_type == "dsi" : 
-          db_coll="dsi_doc"
-          document_out["data_raw"] = {"f_col_headers" : document["data_raw"]["f_col_headers"]}
-          document_out["data_raw"]["f_col_headers"].append(
-            {	
-              'f_coll_header_text': 'sd_id',
-              'f_coll_header_val': 'sd_id'
-            }
-          )
-        document_out["data_raw"]["f_data"] = get_ds_docs(
-                                    doc_oid, 
-                                    query_args, 
-                                    db_coll=db_coll,
-                                    f_col_headers=document["data_raw"]["f_col_headers"]
-                                  )
-        if get_filters == False :
-          document_out["data_raw"]["f_data"] = strip_f_data(	
-                                      document_out["data_raw"], 
-                                      doc_open_level_show, 
-                                      team_oids,
-                                      created_by_oid,
-                                      roles_for_complete, 
-                                      user_role, 
-                                      user_oid,
-                                      document_type=document_type
-                                    )
-          document_out["data_raw"]["f_data"] = latLngTuple(document_out["data_raw"]["f_data"], query_args)
+      ### strip f_data from not allowed fields
+      not_filtered = False
+      if document_type == "dso" :  
+        db_coll="dso_doc"
+        document_out["data_raw"]["f_col_headers"].append(
+          {  
+            'f_title' : '_id',
+            'open_level_show' : 'sd_id',
+            'f_type' : 'id'
+          }
+        )
+      elif document_type == "dsi" : 
+        db_coll="dsi_doc"
+        document_out["data_raw"] = {"f_col_headers" : document["data_raw"]["f_col_headers"]}
+        document_out["data_raw"]["f_col_headers"].append(
+          {  
+            'f_coll_header_text': 'sd_id',
+            'f_coll_header_val': 'sd_id'
+          }
+        )
+      document_out["data_raw"]["f_data"] = get_ds_docs(
+        doc_oid, 
+        query_args, 
+        db_coll=db_coll,
+        f_col_headers=document["data_raw"]["f_col_headers"]
+      )
+      if get_filters == False :
+        document_out["data_raw"]["f_data"] = strip_f_data(  
+          document_out["data_raw"], 
+          doc_open_level_show, 
+          team_oids,
+          created_by_oid,
+          roles_for_complete, 
+          user_role, 
+          user_oid,
+          document_type=document_type,
+          map_list=map_list,
+          fields_to_return=fields_to_return
+        )
+        document_out["data_raw"]["f_data"] = latLngTuple(document_out["data_raw"]["f_data"], query_args)
+    
     else :
       document_out["data_raw"]["f_data"] = document["data_raw"]["f_data"]
 
-    # if len(document_out["data_raw"]["f_data"]) > 0 : 
-    # 	log.debug( 'document_out["data_raw"]["f_data"][0] : \n%s', pformat(document_out["data_raw"]["f_data"][0]) )
-
-    ### SEARCH QUERIES
-    document_out["data_raw"]["f_data"] = search_f_data(document_out["data_raw"], query_args, not_filtered=not_filtered)
-
-    ### shuffle results
-    # if shuffle_seed != None and map_list == False and get_filters == False:
-    #   random.seed(shuffle_seed)
-    #   random.shuffle(document_out["data_raw"]["f_data"])
+    ### MAIN SEARCH QUERIES
+    document_out["data_raw"]["f_data"] = search_f_data(
+      document_out["data_raw"], 
+      query_args, 
+      not_filtered=not_filtered
+    )
 
     ### sort results
     if sort_by != None :
       log.debug( 'sort_by : %s', sort_by )
       # NOT WORKING : document_out["data_raw"]["f_data"] = document_out["data_raw"]["f_data"].sort(key=operator.itemgetter(sort_by))
       # NOT WORKING WITH MISSING FIELDS : document_out["data_raw"]["f_data"] = sorted(document_out["data_raw"]["f_data"], key = lambda i: i[sort_by]) 
-      document_out["data_raw"]["f_data"] = sort_list_of_dicts(document_out["data_raw"]["f_data"], sort_by, is_reverse=descending)
+      document_out["data_raw"]["f_data"] = sort_list_of_dicts(
+        document_out["data_raw"]["f_data"], 
+        sort_by, 
+        is_reverse=descending
+      )
       log.debug( '...document_out sorted' )
 
     # add total of items within f_data in response
@@ -532,18 +604,10 @@ def GetFData( document_type,
     if slice_f_data == True and map_list == False and get_filters == False :
       log.debug( 'slice_f_data : %s', slice_f_data )
       document_out["data_raw"]["f_data"] = document_out["data_raw"]["f_data"][ start_index : end_index ]
-      # document_out["data_raw"]["f_data"] = document_out["data_raw"]["f_data"][ 0 : 1 ]
-
-
-    # ### shuffle results
-    # if shuffle_seed != None and map_list == False and get_filters == False:
-    #   random.seed(shuffle_seed)
-    #   random.shuffle(document_out["data_raw"]["f_data"])
-
 
     # only f_data
     # if only_f_data : 
-    # 	document_out = document_out["data_raw"]["f_data"]
+    #   document_out = document_out["data_raw"]["f_data"]
 
     
   return document_out
@@ -559,10 +623,10 @@ def check_if_prj_is_buildable (doc_prj) :
 
   is_buildable = False
 
-  prj_dmt 		= doc_prj["datasets"]["dmt_list"]
-  prj_dsi 		= doc_prj["datasets"]["dsi_list"]
-  prj_map_open 	= doc_prj["mapping"]["dmf_to_open_level"]
-  prj_map_dsi 	= doc_prj["mapping"]["dsi_to_dmf"]
+  prj_dmt     = doc_prj["datasets"]["dmt_list"]
+  prj_dsi     = doc_prj["datasets"]["dsi_list"]
+  prj_map_open   = doc_prj["mapping"]["dmf_to_open_level"]
+  prj_map_dsi   = doc_prj["mapping"]["dsi_to_dmf"]
 
   ### check if prj contains dmt and dsi
   if len(prj_dmt)>0 and len(prj_dsi)>0 :
@@ -575,25 +639,25 @@ def check_if_prj_is_buildable (doc_prj) :
       log.debug( "... lengths prj_map_open & prj_map_dsi : OK ... " )
 
       ### set of unique values of dmf from prj_map_open
-      prj_dsi_set 	= { d['oid_dsi'] for d in prj_dsi }
+      prj_dsi_set   = { d['oid_dsi'] for d in prj_dsi }
       log.debug( "... prj_dsi_set : \n%s : ", pformat(prj_dsi_set) )
 
       ### set of unique values of dmf from prj_map_open
-      prj_map_dmf_set 		= { d['oid_dmf'] for d in prj_map_open }
+      prj_map_dmf_set     = { d['oid_dmf'] for d in prj_map_open }
       log.debug( "... prj_map_dmf_set : \n%s : ", pformat(prj_map_dmf_set) )
 
       ### unique values of dsi from prj_map_dsi
-      prj_map_dsi_dict 		= { d['oid_dsi'] : { "dmf_list" : [] } for d in prj_map_dsi }
+      prj_map_dsi_dict     = { d['oid_dsi'] : { "dmf_list" : [] } for d in prj_map_dsi }
       for d in prj_map_dsi : 
         prj_map_dsi_dict[ d['oid_dsi'] ]["dmf_list"].append( d["oid_dmf"] )
       log.debug( "... prj_map_dsi_dict : \n%s : ", pformat(prj_map_dsi_dict) )
 
       ### set of unique values of dmf for each dsi from prj_map_dsi_dict
-      prj_map_dsi_sets 		= { k : set(v['dmf_list']) for k,v in prj_map_dsi_dict.items() }
+      prj_map_dsi_sets     = { k : set(v['dmf_list']) for k,v in prj_map_dsi_dict.items() }
       log.debug( "... prj_map_dsi_sets : \n%s : ", pformat(prj_map_dsi_sets) )
 
       ### check if dmf in prj_map_dsi are in prj_map_open
-      dsi_mapped_not_in_prj 					= 0
+      dsi_mapped_not_in_prj           = 0
       dsi_mapped_but_no_dmf_mapped_in_prj_map = 0
 
       for dsi_oid, dsi_dmf_mapped_set in prj_map_dsi_sets.items() : 
@@ -604,9 +668,9 @@ def check_if_prj_is_buildable (doc_prj) :
           ### check if dsi_dmf_mapped_set contains at least 1 dmf from prj_map_dmf_set
           log.debug( "... dsi_dmf_mapped_set : \n%s ", pformat(dsi_dmf_mapped_set) )
           log.debug( "... prj_map_dmf_set : \n%s ", pformat(prj_map_dmf_set) )
-          intersection 		= dsi_dmf_mapped_set & prj_map_dmf_set
+          intersection     = dsi_dmf_mapped_set & prj_map_dmf_set
           log.debug( "... intersection : %s ", intersection )
-          len_intersection 	= len(intersection)
+          len_intersection   = len(intersection)
           if len_intersection == 0 :
             dsi_mapped_but_no_dmf_mapped_in_prj_map += 1
 

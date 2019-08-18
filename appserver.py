@@ -108,23 +108,37 @@ def app_runner(mode, docker, host, port, mongodb, auth_mode, rsa, anojwt, antisp
     else : 
       env_path_mailing = Path('.') / 'example.env.mailing'
 
+    # if auth_mode != 'internal' : 
+    #   env_path_auth = Path('.') / '.env.auth'
+    # else : 
+    env_path_auth = Path('.') / 'example.env.auth'
+
   else : 
     env_path_global = Path('.') / '.env.global'
     env_path_mongodb = Path('.') / '.env.mongodb'
     env_path_mailing = Path('.') / '.env.mailing'
+    env_path_auth = Path('.') / '.env.auth'
 
   load_dotenv(env_path_global, verbose=True)
   load_dotenv(env_path_mongodb, verbose=True)
   load_dotenv(env_path_mailing, verbose=True)
+  load_dotenv(env_path_auth, verbose=True)
 
 
 
   ### OVERIDE AND SET UP ENV VARS FROM CLI 
-  os.environ["DOMAIN_ROOT"]   = host
-  os.environ["DOMAIN_PORT"]   = port
-  os.environ["DOCKER_MODE"]   = docker
-  os.environ["MONGODB_MODE"]  = mongodb
-  os.environ["AUTH_MODE"]     = auth_mode
+  os.environ["DOMAIN_ROOT"]    = host
+  os.environ["DOMAIN_PORT"]    = port
+  os.environ["DOCKER_MODE"]    = docker
+  os.environ["MONGODB_MODE"]   = mongodb
+
+  os.environ["AUTH_MODE"]      = auth_mode
+
+  os.environ["RSA_MODE"]       = rsa
+  os.environ["ANOJWT_MODE"]    = anojwt
+  os.environ["ANTISPAM_MODE"]  = antispam
+  os.environ["ANTISPAM_VALUE"] = antispam_val
+  os.environ["HTTPS_MODE"]     = https
 
   # if mode not in ["prod", "preprod"]:
   # os.environ["SERVER_NAME"]  = host + ":" + port
@@ -141,6 +155,7 @@ def app_runner(mode, docker, host, port, mongodb, auth_mode, rsa, anojwt, antisp
     run_mode=mode, 
     docker_mode=docker,
     mongodb_mode=mongodb,
+
     auth_mode=auth_mode,
 
     RSA_mode=rsa, 

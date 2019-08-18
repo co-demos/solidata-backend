@@ -23,10 +23,16 @@ doc_type_dict		= {
 	"prj" : "project",
 	"dmt" : "datamodel_template",
 	"dmf" : "datamodel_field",
+
 	"dsi" : "dataset_input",
+	"dsi_doc" : "dataset_input_docs",
 	"dsr" : "dataset_raw",
+
 	"rec" : "recipe",
+
 	"dso" : "dataset_output",
+	"dsi_doc" : "dataset_output_docs",
+  
 	"tag" : "tag",
 	"lic" : "licence",
 	

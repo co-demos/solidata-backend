@@ -3,7 +3,7 @@
 """
 api_auth/__init__.py
 - provides the API endpoints for consuming and producing
-	REST requests and responses
+  REST requests and responses
 """
 
 from solidata_api.api import *
@@ -24,14 +24,14 @@ blueprint = Blueprint( 'api_auth', __name__, template_folder=app.config["TEMPLAT
 # CORS(blueprint)
 
 ### create API
-api = MyApi(  	blueprint,
-						title	= "Solidata API : AUTH SERVER",
-						version	= app.config["APP_VERSION"],
-						description	= app.config["CODE_LINK"] + " : auth server / manages tokens",
-						doc	= '/documentation',
-						default	= 'login',
-						authorizations = auth_check,
-						# security='apikey' # globally ask for apikey auth
+api = MyApi( blueprint,
+  title	= "Solidata API : AUTH SERVER",
+  version	= app.config["APP_VERSION"],
+  description	= "{} - auth_mode : {} / manage tokens".format(app.config["CODE_LINK"], app.config["AUTH_MODE"]),
+  doc	= '/documentation',
+  default	= 'login',
+  authorizations = auth_check,
+  # security='apikey' # globally ask for apikey auth
 )
 
 
@@ -39,11 +39,11 @@ api = MyApi(  	blueprint,
 
 @api.errorhandler
 def default_error_handler(e):
-		message = 'An unhandled exception occurred.'
-		log.exception(message)
+    message = 'An unhandled exception occurred.'
+    log.exception(message)
 
-		if not app.config["FLASK_DEBUG"]:
-				return {'message': message}, 500
+    if not app.config["FLASK_DEBUG"]:
+        return {'message': message}, 500
 
 
 # @api.errorhandler(NoResultFound)

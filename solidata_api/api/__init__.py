@@ -3,25 +3,27 @@
 from log_config import log, pformat
 log.debug("... importing all common vars and libs from solidata.api root")
 
-import 	os
-from		copy import copy, deepcopy
-from  	datetime import datetime, timedelta
-import 	json
-from	bson import json_util
-from	bson.objectid import ObjectId
-from	bson.json_util import dumps
-# from 	werkzeug.datastructures import ImmutableMultiDict
-import 	operator
+import os
+from copy import copy, deepcopy
+from datetime import datetime, timedelta
+import json
+from bson import json_util
+from bson.objectid import ObjectId
+from bson.json_util import dumps
+# from   werkzeug.datastructures import ImmutableMultiDict
+import operator
+from io import StringIO
 
-import 	pandas as pd
-import 	numpy as np
-import 	requests
+import pandas as pd
+import numpy as np
+import requests
 
-from 	flask 				import Blueprint, current_app as app, url_for, request, render_template
+from flask import Blueprint, current_app as app, url_for, request, render_template
+from flask_csv import send_csv
 
-from 	werkzeug.security 	import 	generate_password_hash, check_password_hash
+from werkzeug.security import   generate_password_hash, check_password_hash
 
-from 	flask_restplus 		import Api, Namespace, Resource, fields, marshal, reqparse
+from flask_restplus import Api, Namespace, Resource, fields, marshal, reqparse
 
 log.info("SWAGGER_BASE_URL : %s " , os.getenv("SWAGGER_BASE_URL"))
 log.info("app.config['DOMAIN_NAME'] : %s" , app.config["DOMAIN_NAME"])
@@ -44,13 +46,13 @@ class MyApi(Api):
         
   # @property
   # def sd_get_root(self):
-# 		'''
-# 		The API base absolute url
-# 		:rtype: str
-# 		'''
+#     '''
+#     The API base absolute url
+#     :rtype: str
+#     '''
       # return url_for(self.endpoint('root'))
       # return self.endpoint('root')
-# 		return os.getenv("SWAGGER_BASE_URL")
+#     return os.getenv("SWAGGER_BASE_URL")
       # return url_for(os.getenv("SERVER_NAME"), _external=False)
         
 # log.debug("MyApi.sd_get_root : \n%s", pformat(MyApi.sd_get_root))
@@ -58,9 +60,9 @@ class MyApi(Api):
 
 import jwt
 from flask_jwt_extended import (
-    jwt_required, jwt_optional, jwt_refresh_token_required, fresh_jwt_required,
-    create_access_token, create_refresh_token, decode_token,
-    get_jwt_identity, get_jwt_claims, get_raw_jwt,
+  jwt_required, jwt_optional, jwt_refresh_token_required, fresh_jwt_required,
+  create_access_token, create_refresh_token, decode_token,
+  get_jwt_identity, get_jwt_claims, get_raw_jwt,
 )
 
 
@@ -81,19 +83,19 @@ from base64 import b64decode, b64encode
 # cf : https://stackoverflow.com/questions/44892946/rsa-encryption-in-python-decrypt-in-js
 # cf : https://pythonhosted.org/pycrypto/Crypto.PublicKey.RSA._RSAobj-class.html#exportKey 
 # cf : https://www.pycryptodome.org/en/latest/src/examples.html 
-random_generator 	= Random.new().read
-key_pair 			= RSA.generate(1024, random_generator)
+random_generator = Random.new().read
+key_pair = RSA.generate(1024, random_generator)
 
-private_key_str		= key_pair.exportKey().decode("utf-8")
+private_key_str = key_pair.exportKey().decode("utf-8")
 log.debug("private_key_str : \n %s", pformat(private_key_str))
 
-public_key 			= key_pair.publickey()
-public_key_str		= public_key.exportKey().decode("utf-8")
+public_key     = key_pair.publickey()
+public_key_str = public_key.exportKey().decode("utf-8")
 log.debug("public_key_str : \n %s", pformat(public_key_str))
 
 # cf : https://medium.com/@DannyAziz97/rsa-encryption-with-js-python-7e031cbb66bb
 # cf : https://stackoverflow.com/questions/44427934/notimplementederror-use-module-crypto-cipher-pkcs1-oaep-instead-error
-# decryptor 			= PKCS1_OAEP.new(key_pair, hashAlgo=SHA256)
+# decryptor       = PKCS1_OAEP.new(key_pair, hashAlgo=SHA256)
 
 cipher = PKCS1_v1_5.new(key_pair)
 
@@ -128,31 +130,34 @@ log.info("/ / \ \ plaintext : \n%s", plaintext)
 ### + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + ###
 ### import CORS settings
 ### + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + ###
-from solidata_api._core.cors 			import CORS, cross_origin
+from solidata_api._core.cors import CORS, cross_origin
 
 # ### import data serializers
 # from solidata_api._serializers.schema_users import *  
 
-from solidata_api._auth.authorizations 	import authorizations as auth_check
+from solidata_api._auth.authorizations import authorizations as auth_check
 
-from solidata_api._auth 				import ( 
+from solidata_api._auth.auth_distant import *
+from solidata_api._auth import (
   admin_required, current_user_required, confirm_email_required, guest_required,
-  anonymous_required, renew_pwd_required, reset_pwd_required 
-  )
+  anonymous_required, renew_pwd_required, reset_pwd_required,
+  jwt_optional_sd, jwt_required_sd,
+  returnClaims
+)
 
-from solidata_api._parsers 	import * # pagination_arguments
-# from solidata_api._parsers.parser_pagination 	import * # pagination_arguments
-# from solidata_api._parsers.parser_queries 		import * # query_arguments
-# from solidata_api._parsers.parser_files 		import * # files_arguments
+from solidata_api._parsers import * # pagination_arguments
+# from solidata_api._parsers.parser_pagination   import * # pagination_arguments
+# from solidata_api._parsers.parser_queries     import * # query_arguments
+# from solidata_api._parsers.parser_files     import * # files_arguments
 
-from solidata_api._choices 			import bad_passwords, authorized_filetypes, authorized_mimetype
+from solidata_api._choices import bad_passwords, authorized_filetypes, authorized_mimetype
 
-from solidata_api._core.utils 		import * # create_modif_log, secure_filename, allowed_file, return_payload
-from solidata_api._core.pandas_ops 	import * # create_modif_log, secure_filename, allowed_file
-from solidata_api._core.emailing 	import send_email
+from solidata_api._core.utils import * # create_modif_log, secure_filename, allowed_file, return_payload
+from solidata_api._core.pandas_ops import * # create_modif_log, secure_filename, allowed_file
+from solidata_api._core.emailing import send_email
 
 ### import mongo utils
-from solidata_api._core.queries_db 	import *
+from solidata_api._core.queries_db   import *
 
 
 

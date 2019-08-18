@@ -67,38 +67,38 @@ You have two different options to run (locally) solidata on your computer/server
 1. **[install MongoDB](https://docs.mongodb.com/manual/installation/) locally** or get the URI of the MongoDB you're using
 1. **go to your solidata folder**
 1. **install python pip and virtualenv**
-	```sh 
-	sudo apt install python-pip
-	sudo apt install virtualenv
-	```
+  ```sh 
+  sudo apt install python-pip
+  sudo apt install virtualenv
+  ```
 
 
 1. **install a [virtual environment](https://pypi.python.org/pypi/virtualenv)**
-	```sh
-	virtualenv -p python3 venv
-	source venv/bin/activate
-	````
-		
+  ```sh
+  virtualenv -p python3 venv
+  source venv/bin/activate
+  ````
+    
 1. **install the libraries**
 
-	```sh
-	sudo pip install -r requirements.txt
-	```
+  ```sh
+  sudo pip install -r requirements.txt
+  ```
 
 
 1. **Go to your app folder and run :**
 
-	```sh
-	python appserver.py
-	````
+  ```sh
+  python appserver.py
+  ````
 1. **optional** : you can also use some variables in the command line : 
-	```sh
-	# get the list of available CLI options
-	python appserver.py --help
+  ```sh
+  # get the list of available CLI options
+  python appserver.py --help
 
-	# for example : run with a custom port number in testing mode
-	python appserver.py --port=4001 --mode=preprod
-	```
+  # for example : run with a custom port number in testing mode
+  python appserver.py --port=4001 --mode=preprod
+  ```
 
 1. **test the following url in your browser** : 
 [`http://localhost:4001/api/dsi/documentation`](http://localhost:4001/api/dsi/documentation)

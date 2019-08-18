@@ -14,13 +14,16 @@ log.debug(">>> _auth ... loading auth functions and decorators")
 
 from .authorizations import authorizations
 
+from .auth_distant_protocols import functions_protocols
 from .auth_distant import *
 
 from .auth_decorators import ( 
-    # import custom decorators
-    anonymous_required,
-    admin_required, current_user_required, guest_required,
-    renew_pwd_required, reset_pwd_required,
-    confirm_email_required
-  ) # token_required
+  # import custom decorators
+  anonymous_required,
+  admin_required, current_user_required, guest_required,
+  renew_pwd_required, reset_pwd_required,
+  confirm_email_required,
+  jwt_optional_sd, jwt_required_sd,
+  returnClaims
+) # token_required
 # from .auth_confirmation_email import generate_confirmation_token, confirm_token

@@ -8,32 +8,51 @@ from datetime import timedelta
 
 ### + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + ###
 
-def formatEnvVar(var_name, format_type='boolean', separator=',') : 
+def formatEnvVar(var_name, format_type='boolean', separator=',', dict_separator=":") : 
 
-  print("formatEnvVar / var_name : ", var_name)
+  # print("formatEnvVar / var_name : ", var_name)
+
   env_var = os.getenv(var_name)
-  print("formatEnvVar / env_var : ", env_var)
+  # print("formatEnvVar / env_var : {} / var_name : {} ".format(env_var, var_name) )
 
-  if format_type == 'boolean' : 
+  # if format_type in ['boolean', 'string'] :
+  if format_type in ['boolean'] :
     if env_var in [ 'y', 'Y','yes', 'Yes', 'YES', 'true', 'True', 'TRUE', '1'] : 
       return True
     else :
       return False
-  
-  elif format_type == 'integer' : 
+
+  # print("...")  
+
+  # trransform as none if it is the case
+  if env_var in [ 'n', 'N', 'none', 'None', 'NONE', 'nan', 'Nan', 'NAN', 'null', 'Null','NULL', 'undefined'] : 
+    env_var = None 
+    if format_type == 'string' : 
+      env_var = ""
+    return env_var
+
+  elif env_var and format_type == 'integer' : 
     return int(env_var)
 
-  elif format_type == 'float' : 
+  elif env_var and format_type == 'float' : 
     return float(env_var)
 
-  elif format_type == 'list' : 
+  elif env_var and format_type == 'list' : 
     return env_var.split(separator)
 
+  elif env_var and format_type == 'dict' : 
+
+    temp_list = env_var.split(separator)
+    # print("formatEnvVar / temp_list : ", temp_list)
+    env_dict = {}
+    if len(temp_list) > 0 : 
+      for tuple_dict in temp_list : 
+        i = tuple_dict.split(dict_separator)
+        env_dict[ i[0] ] = i[1] 
+    return env_dict
+
   else : 
-    if env_var in [ 'n', 'N', 'none', 'None', 'NONE', 'nan', 'Nan', 'NAN', 'null', 'Null','NULL', 'undefined', '0'] : 
-      return None
-    else : 
-      return env_var
+    return env_var
 
 ### + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + ###
 
@@ -152,6 +171,7 @@ class BaseConfig(object):
     os.environ["DOMAIN_NAME"] = http_mode + "://" + DOMAIN_ROOT + ":" + str(DOMAIN_PORT)
     DOMAIN_NAME =  os.getenv("DOMAIN_NAME")
 
+  HTTPS_MODE = http_mode
 
   TEMPLATES_FOLDER   = "/templates"
   ROOT_FOLDER        = os.getcwd()
@@ -163,9 +183,175 @@ class BaseConfig(object):
 
   """ AUTH MODE """
   AUTH_MODE = os.getenv("AUTH_MODE")
-  AUTH_URL_ROOT_LOCAL = os.getenv("AUTH_URL_ROOT_LOCAL")
-  AUTH_URL_ROOT_DISTANT_PROD = os.getenv("AUTH_URL_ROOT_DISTANT_PROD")
-  AUTH_URL_ROOT_DISTANT_PREPOD = os.getenv("AUTH_URL_ROOT_DISTANT_PREPOD")
+
+  if AUTH_MODE != 'internal' :
+
+    AUTH_URL_ROOT_LOCAL = os.getenv("AUTH_URL_ROOT_LOCAL")
+    AUTH_URL_ROOT_DISTANT_PROD = os.getenv("AUTH_URL_ROOT_DISTANT_PROD")
+    AUTH_URL_ROOT_DISTANT_PREPOD = os.getenv("AUTH_URL_ROOT_DISTANT_PREPOD")
+
+    AUTH_URL_HEADERS = formatEnvVar('AUTH_URL_HEADERS', format_type='dict')
+    AUTH_URL_HEADERS_PAYLOAD = formatEnvVar('AUTH_URL_HEADERS_PAYLOAD', format_type='dict')
+    AUTH_URL_TOKEN_LOCATION = formatEnvVar('AUTH_URL_TOKEN_LOCATION', format_type='list')
+    AUTH_URL_TOKEN_HEADER_NAME = os.getenv('AUTH_URL_TOKEN_HEADER_NAME')
+    AUTH_URL_TOKEN_HEADER_TYPE = formatEnvVar('AUTH_URL_TOKEN_HEADER_TYPE', format_type='string')
+
+    AUTH_URL_TOKEN_QUERY_STRING_NAME = os.getenv('AUTH_URL_TOKEN_QUERY_STRING_NAME', 'token')
+
+    AUTH_DISTANT_ENDPOINTS = {
+      
+      ### LISTING USERS
+      "users_list" : {
+        "get_one" : {
+          "url" :         os.getenv("AUTH_DISTANT_USER_GET_ONE"),
+          "method" :      os.getenv("AUTH_DISTANT_USER_GET_ONE_METHOD"),
+          "url_args" :    formatEnvVar('AUTH_DISTANT_USER_GET_ONE_URL_ARGS', format_type='dict'),
+          "url_append" :  formatEnvVar('AUTH_DISTANT_USER_GET_ONE_URL_APPEND', format_type='list'),
+          "post_args" :   formatEnvVar('AUTH_DISTANT_USER_GET_ONE_POST_ARGS', format_type='dict'),
+          "resp_path" :   formatEnvVar('AUTH_DISTANT_USER_GET_ONE_RESP', format_type='dict'),
+        },
+        "get_list"    : {
+          "url" :         os.getenv("AUTH_DISTANT_USER_GET_LIST"),
+          "method" :      os.getenv("AUTH_DISTANT_USER_GET_LIST_METHOD"),
+          "url_args" :    formatEnvVar('AUTH_DISTANT_USER_GET_LIST_URL_ARGS', format_type='dict'),
+          "url_append" :  formatEnvVar('AUTH_DISTANT_USER_GET_LIST_URL_APPEND', format_type='list'),
+          "post_args" :   formatEnvVar('AUTH_DISTANT_USER_GET_LIST_POST_ARGS', format_type='dict'),
+          "resp_path" :   formatEnvVar('AUTH_DISTANT_USER_GET_LIST_RESP', format_type='dict'),
+        },
+      },
+
+      ### EDIT USER
+      "user_edit" : {
+        "register" : {
+          "url" :         os.getenv("AUTH_DISTANT_USER_REGISTER"),
+          "method" :      os.getenv("AUTH_DISTANT_USER_REGISTER_METHOD"),
+          "url_args" :    formatEnvVar('AUTH_DISTANT_USER_REGISTER_URL_ARGS', format_type='dict'),
+          "url_append" :  formatEnvVar('AUTH_DISTANT_USER_REGISTER_URL_APPEND', format_type='list'),
+          "post_args" :   formatEnvVar('AUTH_DISTANT_USER_REGISTER_POST_ARGS', format_type='dict'),
+          "resp_path" :   formatEnvVar('AUTH_DISTANT_USER_REGISTER_RESP', format_type='dict'),
+        },
+        "confirm_email" : {
+          "url" :         os.getenv("AUTH_DISTANT_USER_CONF_EMAIL"),
+          "method" :      os.getenv("AUTH_DISTANT_USER_CONF_EMAIL_METHOD"),
+          "url_args" :    formatEnvVar('AUTH_DISTANT_USER_CONF_EMAIL_URL_ARGS', format_type='dict'),
+          "url_append" :  formatEnvVar('AUTH_DISTANT_USER_CONF_EMAIL_URL_APPEND', format_type='list'),
+          "post_args" :   formatEnvVar('AUTH_DISTANT_USER_CONF_EMAIL_POST_ARGS', format_type='dict'),
+          "resp_path" :   formatEnvVar('AUTH_DISTANT_USER_CONF_EMAIL_RESP', format_type='dict'),
+        },
+        "user_update" : {
+          "url" :         os.getenv("AUTH_DISTANT_USER_EDIT"),
+          "method" :      os.getenv("AUTH_DISTANT_USER_EDIT_METHOD"),
+          "url_args" :    formatEnvVar('AUTH_DISTANT_USER_EDIT_URL_ARGS', format_type='dict'),
+          "url_append" :  formatEnvVar('AUTH_DISTANT_USER_EDIT_URL_APPEND', format_type='list'),
+          "post_args" :   formatEnvVar('AUTH_DISTANT_USER_EDIT_POST_ARGS', format_type='dict'),
+          "resp_path" :   formatEnvVar('AUTH_DISTANT_USER_EDIT_RESP', format_type='dict'),
+        },
+        "user_delete" : {
+          "url" :         os.getenv("AUTH_DISTANT_USER_DELETE"),
+          "method" :      os.getenv("AUTH_DISTANT_USER_DELETE_METHOD"),
+          "url_args" :    formatEnvVar('AUTH_DISTANT_USER_DELETE_URL_ARGS', format_type='dict'),
+          "url_append" :  formatEnvVar('AUTH_DISTANT_USER_DELETE_URL_APPEND', format_type='list'),
+          "post_args" :   formatEnvVar('AUTH_DISTANT_USER_DELETE_POST_ARGS', format_type='dict'),
+          "resp_path" :   formatEnvVar('AUTH_DISTANT_USER_DELETE_RESP', format_type='dict'),
+        },
+      },
+      ###
+      "user_login" : {
+        "login" : {
+          "url" :         os.getenv("AUTH_DISTANT_USER_LOGIN"),
+          "method" :      os.getenv("AUTH_DISTANT_USER_LOGIN_METHOD"),
+          "url_args" :    formatEnvVar('AUTH_DISTANT_USER_LOGIN_URL_ARGS', format_type='dict'),
+          "url_append" :  formatEnvVar('AUTH_DISTANT_USER_LOGIN_URL_APPEND', format_type='list'),
+          "post_args" :   formatEnvVar('AUTH_DISTANT_USER_LOGIN_POST_ARGS', format_type='dict'),
+          "resp_path" :   formatEnvVar('AUTH_DISTANT_USER_LOGIN_RESP', format_type='dict'),
+        },
+        "login_anonymous" : {
+          "url" :         os.getenv("AUTH_DISTANT_USER_LOGIN_ANO"),
+          "method" :      os.getenv("AUTH_DISTANT_USER_LOGIN_ANO_METHOD"),
+          "url_args" :    formatEnvVar('AUTH_DISTANT_USER_LOGIN_ANO_URL_ARGS', format_type='dict'),
+          "url_append" :  formatEnvVar('AUTH_DISTANT_USER_LOGIN_ANO_URL_APPEND', format_type='list'),
+          "post_args" :   formatEnvVar('AUTH_DISTANT_USER_LOGIN_ANO_POST_ARGS', format_type='dict'),
+          "resp_path" :   formatEnvVar('AUTH_DISTANT_USER_LOGIN_ANO_RESP', format_type='dict'),
+        },
+      },
+      ###
+      "auth_tokens" : {
+        "confirm_access" : {
+          "url" :         os.getenv("AUTH_DISTANT_USER_TOK_CONFIRM"),
+          "method" :      os.getenv("AUTH_DISTANT_USER_TOK_CONFIRM_METHOD"),
+          "url_args" :    formatEnvVar('AUTH_DISTANT_USER_TOK_CONFIRM_URL_ARGS', format_type='dict'),
+          "url_append" :  formatEnvVar('AUTH_DISTANT_USER_TOK_CONFIRM_URL_APPEND', format_type='list'),
+          "post_args" :   formatEnvVar('AUTH_DISTANT_USER_TOK_CONFIRM_POST_ARGS', format_type='dict'),
+          "resp_path" :   formatEnvVar('AUTH_DISTANT_USER_TOK_CONFIRM_RESP', format_type='dict'),
+        },
+        "fresh_access_token" : {
+          "url" :         os.getenv("AUTH_DISTANT_USER_TOK_FRESH"),
+          "method" :      os.getenv("AUTH_DISTANT_USER_TOK_FRESH_METHOD"),
+          "url_args" :    formatEnvVar('AUTH_DISTANT_USER_TOK_FRESH_URL_ARGS', format_type='dict'),
+          "url_append" :  formatEnvVar('AUTH_DISTANT_USER_TOK_FRESH_URL_APPEND', format_type='list'),
+          "post_args" :   formatEnvVar('AUTH_DISTANT_USER_TOK_FRESH_POST_ARGS', format_type='dict'),
+          "resp_path" :   formatEnvVar('AUTH_DISTANT_USER_TOK_FRESH_RESP', format_type='dict'),
+        },
+        "new_access_token" : {
+          "url" :         os.getenv("AUTH_DISTANT_USER_TOK_NEW"),
+          "method" :      os.getenv("AUTH_DISTANT_USER_TOK_NEW_METHOD"),
+          "url_args" :    formatEnvVar('AUTH_DISTANT_USER_TOK_NEW_URL_ARGS', format_type='dict'),
+          "url_append" :  formatEnvVar('AUTH_DISTANT_USER_TOK_NEW_URL_APPEND', format_type='list'),
+          "post_args" :   formatEnvVar('AUTH_DISTANT_USER_TOK_NEW_POST_ARGS', format_type='dict'),
+          "resp_path" :   formatEnvVar('AUTH_DISTANT_USER_TOK_NEW_RESP', format_type='dict'),
+        },
+        "new_refresh_token" : {
+          "url" :         os.getenv("AUTH_DISTANT_USER_TOK_NEW_REFRESH"),
+          "method" :      os.getenv("AUTH_DISTANT_USER_TOK_NEW_REFRESH_METHOD"),
+          "url_args" :    formatEnvVar('AUTH_DISTANT_USER_TOK_NEW_REFRESH_URL_ARGS', format_type='dict'),
+          "url_append" :  formatEnvVar('AUTH_DISTANT_USER_TOK_NEW_REFRESH_URL_APPEND', format_type='list'),
+          "post_args" :   formatEnvVar('AUTH_DISTANT_USER_TOK_NEW_REFRESH_POST_ARGS', format_type='dict'),
+          "resp_path" :   formatEnvVar('AUTH_DISTANT_USER_TOK_NEW_REFRESH_RESP', format_type='dict'),
+        },
+        "token_claims" : {
+          "url" :         os.getenv("AUTH_DISTANT_USER_TOK_CLAIMS"),
+          "method" :      os.getenv("AUTH_DISTANT_USER_TOK_CLAIMS_METHOD"),
+          "url_args" :    formatEnvVar('AUTH_DISTANT_USER_TOK_CLAIMS_URL_ARGS', format_type='dict'),
+          "url_append" :  formatEnvVar('AUTH_DISTANT_USER_TOK_CLAIMS_POST_ARGS', format_type='list'),
+          "post_args" :   formatEnvVar('AUTH_DISTANT_USER_TOK_CLAIMS_URL_APPEND', format_type='dict'),
+          "resp_path" :   formatEnvVar('AUTH_DISTANT_USER_TOK_CLAIMS_RESP', format_type='dict'),
+        },
+      },
+      ###
+      "auth_password" : {
+        "pwd_forgot" : {
+          "url" :         os.getenv("AUTH_DISTANT_PWD_FORGOT"),
+          "method" :      os.getenv("AUTH_DISTANT_PWD_FORGOT_METHOD"),
+          "url_args" :    formatEnvVar('AUTH_DISTANT_PWD_FORGOT_URL_ARGS', format_type='dict'),
+          "url_append" :  formatEnvVar('AUTH_DISTANT_PWD_FORGOT_URL_APPEND', format_type='list'),
+          "post_args" :   formatEnvVar('AUTH_DISTANT_PWD_FORGOT_POST_ARGS', format_type='dict'),
+          "resp_path" :   formatEnvVar('AUTH_DISTANT_PWD_FORGOT_RESP', format_type='dict'),
+        },
+        "pwd_reset" : {
+          "url" :         os.getenv("AUTH_DISTANT_PWD_RESET"),
+          "method" :      os.getenv("AUTH_DISTANT_PWD_RESET_METHOD"),
+          "url_args" :    formatEnvVar('AUTH_DISTANT_PWD_RESET_URL_ARGS', format_type='dict'),
+          "url_append" :  formatEnvVar('AUTH_DISTANT_PWD_RESET_URL_APPEND', format_type='list'),
+          "post_args" :   formatEnvVar('AUTH_DISTANT_PWD_RESET_POST_ARGS', format_type='dict'),
+          "resp_path" :   formatEnvVar('AUTH_DISTANT_PWD_RESET_RESP', format_type='dict'),
+        },
+        "pwd_reset_link" : {
+          "url" :         os.getenv("AUTH_DISTANT_PWD_RESET_LINK"),
+          "method" :      os.getenv("AUTH_DISTANT_PWD_RESET_LINK_METHOD"),
+          "url_args" :    formatEnvVar('AUTH_DISTANT_PWD_RESET_LINK_URL_ARGS', format_type='dict'),
+          "url_append" :  formatEnvVar('AUTH_DISTANT_PWD_RESET_LINK_URL_APPEND', format_type='list'),
+          "post_args" :   formatEnvVar('AUTH_DISTANT_PWD_RESET_LINK_POST_ARGS', format_type='dict'),
+          "resp_path" :   formatEnvVar('AUTH_DISTANT_PWD_RESET_LINK_RESP', format_type='dict'),
+        },
+      }
+    }
+
+  """ OPTIONS ENCRYPTION / PROTECTION """
+  RSA_MODE       = os.getenv('RSA_MODE')
+  ANOJWT_MODE    = os.getenv('ANOJWT_MODE')
+  ANTISPAM_MODE  = os.getenv('ANTISPAM_MODE')
+  ANTISPAM_VALUE = os.getenv('ANTISPAM_VALUE')
+  HTTPS_MODE     = os.getenv('HTTPS_MODE')
 
   """ RESTPLUS CONFIG """
   SWAGGER_UI_DOC_EXPANSION    = 'list'
@@ -174,16 +360,19 @@ class BaseConfig(object):
   SWAGGER_UI_REQUEST_DURATION = True
 
   """ APP SECRET KEY """
-  # SECRET_KEY = "app_very_secret_key"
   SECRET_KEY = os.getenv("SECRET_KEY") # "app_very_secret_key"
 
   """ SHARED JWT SECRET KEY : this key must be shared with openscraper and solidata """
-  # JWT_SECRET_KEY          = "a_key_shared_with_front_and_openscraper_and_solidata"
-  JWT_SECRET_KEY            = os.getenv("JWT_SECRET_KEY") # "a_key_youhouuuuuuu"
+  JWT_SECRET_KEY        = os.getenv("JWT_SECRET_KEY") # "a_key_youhouuuuuuu"
 
-  JWT_HEADER_NAME           = "Authorization" #"X-API-KEY"
-  JWT_TOKEN_LOCATION        = ["headers", "query_string"]
-  JWT_QUERY_STRING_NAME     = "token"
+  JWT_HEADER_NAME       = os.getenv("JWT_HEADER_NAME") # "Authorization" #"X-API-KEY"
+  JWT_TOKEN_LOCATION    = formatEnvVar("JWT_TOKEN_LOCATION", format_type="list") # ["headers", "query_string"]
+  JWT_QUERY_STRING_NAME = os.getenv("JWT_HEADER_NAME") # "token"
+
+  # beware not putting anything in JWT_HEADER_TYPE like 'Bearer', 
+  # otherwise @jwt_required will look for an Authorization : Bearer <JWT> / 
+  # not very comptatible with Flask-RestPlus authorization schemas described in _auth.authorizations.py
+  JWT_HEADER_TYPE = "" 
 
   JWT_ACCESS_TOKEN_EXPIRES  = timedelta(minutes=720) # minutes=15
 
@@ -200,13 +389,10 @@ class BaseConfig(object):
   JWT_RESET_PWD_ACCESS_TOKEN_EXPIRES_VAL  = formatEnvVar("JWT_RESET_PWD_ACCESS_TOKEN_EXPIRES", format_type='integer')
   JWT_RESET_PWD_ACCESS_TOKEN_EXPIRES      = timedelta(days=JWT_RESET_PWD_ACCESS_TOKEN_EXPIRES_VAL)  
 
-  # beware not putting anything in JWT_HEADER_TYPE like 'Bearer', 
-  # otherwise @jwt_required will look for an Authorization : Bearer <JWT> / 
-  # not very comptatible with Flask-RestPlus authorization schemas described in _auth.authorizations.py
-  JWT_HEADER_TYPE = "" 
 
-  # JWT_RENEW_REFRESH_TOKEN_AT_LOGIN      = True 
-  JWT_RENEW_REFRESH_TOKEN_AT_LOGIN  = formatEnvVar('JWT_RENEW_REFRESH_TOKEN_AT_LOGIN', format_type='boolean') # False 
+
+  # JWT_RENEW_REFRESH_TOKEN_AT_LOGIN = True 
+  JWT_RENEW_REFRESH_TOKEN_AT_LOGIN = formatEnvVar('JWT_RENEW_REFRESH_TOKEN_AT_LOGIN', format_type='boolean') # False 
 
 
   """ MONGODB """
@@ -230,8 +416,6 @@ class BaseConfig(object):
   MONGO_COLL_LICENCES             = os.getenv("MONGO_COLL_LICENCES", "licences")
   MONGO_COLL_JWT_BLACKLIST        = os.getenv("MONGO_COLL_JWT_BLACKLIST", "jwt_blacklist")
 
-  """ AUTH MODE """ 
-  AUTH_MODE = os.getenv("AUTH_MODE", "local")
 
   """ EMAILING """
   # # email server

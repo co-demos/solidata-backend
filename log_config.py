@@ -11,18 +11,18 @@ from colorlog import ColoredFormatter
 
 ### create a formatter for future logger
 formatter = ColoredFormatter(
-	"%(log_color)s%(levelname)1.1s ::: %(name)s %(asctime)s ::: %(module)s:%(lineno)d -in- %(funcName)s ::: %(reset)s %(white)s%(message)s",
-	datefmt='%y-%m-%d %H:%M:%S',
-	reset=True,
-	log_colors={
-		'DEBUG':    'cyan',
-		'INFO':     'green',
-		'WARNING':  'yellow',
-		'ERROR':    'red',
-		'CRITICAL': 'red,bg_white',
-	},
-	secondary_log_colors={},
-	style='%'
+  "%(log_color)s%(levelname)1.1s ::: %(name)s %(asctime)s ::: %(module)s:%(lineno)d -in- %(funcName)s ::: %(reset)s %(white)s%(message)s",
+  datefmt='%y-%m-%d %H:%M:%S',
+  reset=True,
+  log_colors={
+    'DEBUG':    'cyan',
+    'INFO':     'green',
+    'WARNING':  'yellow',
+    'ERROR':    'red',
+    'CRITICAL': 'red,bg_white',
+  },
+  secondary_log_colors={},
+  style='%'
 )
 
 ### create handler
