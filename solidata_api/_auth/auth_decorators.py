@@ -176,17 +176,18 @@ def returnClaims(is_optional=False, return_anonymous_as_default=True):
   """ 
   log.debug("-@- returnClaims / is_distant_auth : %s", is_distant_auth)
 
+  anonymous_claims = {
+    "_id" : None,
+    "auth" : {
+      "role" : None,
+    },
+    "renew_pwd" : False,
+    "reset_pwd" : False,
+    "confirm_email" : False,
+  }
+
   if is_distant_auth : 
     ### distant call to get claims
-    anonymous_claims = {
-      "_id" : None,
-      "auth" : {
-        "role" : None,
-      },
-      "renew_pwd" : False,
-      "reset_pwd" : False,
-      "confirm_email" : False,
-    }
     response = distantAuthCall( api_request=request, func_name="token_claims" )
     # log.debug("-@- returnClaims / response : \n%s", pformat(response) )
     if return_anonymous_as_default :
@@ -206,6 +207,8 @@ def returnClaims(is_optional=False, return_anonymous_as_default=True):
 
     log.debug("-@- returnClaims / local check / is_optional B : %s", is_optional)
     claims = get_jwt_claims()
+    if not claims and return_anonymous_as_default : 
+      claims = anonymous_claims
 
   log.debug("-@- returnClaims / claims : \n %s", pformat(claims) )
 
