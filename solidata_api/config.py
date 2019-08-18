@@ -124,7 +124,8 @@ else :
   mongodb_options = "" 
   if config_mongodb == "server" : #config_name 
     mongodb_login = "{}:{}@".format(MONGO_USER_SERVER, MONGO_PASS_SERVER)
-    mongodb_options = MONGO_OPTIONS_SERVER ### must begin with "?"
+    if MONGO_OPTIONS_SERVER != 'none' : 
+      mongodb_options = MONGO_OPTIONS_SERVER ### must begin with "?"
 
   mongodb_uri = "mongodb://{}{}:{}/{}{}".format(mongodb_login, mongodb_root, mongodb_port, mongodb_dbname, mongodb_options)
 
