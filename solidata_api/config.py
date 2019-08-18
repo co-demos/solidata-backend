@@ -122,7 +122,7 @@ else :
   ### get login if mongodb hosted on a server
   mongodb_login = "" 
   mongodb_options = "" 
-  if config_name == "server" : 
+  if config_mongodb == "server" : #config_name 
     mongodb_login = "{}:{}@".format(MONGO_USER_SERVER, MONGO_PASS_SERVER)
     mongodb_options = MONGO_OPTIONS_SERVER ### must begin with "?"
 
