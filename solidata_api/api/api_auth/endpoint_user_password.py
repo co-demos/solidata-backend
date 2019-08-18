@@ -37,7 +37,7 @@ class PasswordForgotten(Resource):
   @ns.expect(model_email_user)
   @ns.doc(responses={401: 'error client : incorrect login or no user'})
   @anonymous_required
-  @distant_auth(func_name="password_forgotten", return_resp=True, ns_payload=True )
+  @distant_auth(func_name="password_forgotten", return_resp=True, ns_payload=True, func_fallback='anonymous_required' )
   def post(self):
     """
     Send an email to allow user to reset its password
@@ -118,7 +118,7 @@ class ResetPassword(Resource):
   @ns.doc('password_reset')
   @fresh_jwt_required
   @renew_pwd_required
-  @distant_auth(func_name="password_reset_get", return_resp=True )
+  @distant_auth(func_name="password_reset_get", return_resp=True, func_fallback='fresh_jwt_required & renew_pwd_required' )
   def get(self):
     """
     Open a link (GET) to allow the user to reset its password
@@ -174,7 +174,7 @@ class ResetPassword(Resource):
   @reset_pwd_required
   @ns.expect(model_pwd_user)
   @ns.doc(responses={401: 'error client : choose a better password'})
-  @distant_auth(func_name="password_reset_post", return_resp=True, ns_payload=True )
+  @distant_auth(func_name="password_reset_post", return_resp=True, ns_payload=True, func_fallback='fresh_jwt_required & renew_pwd_required' )
   def post(self):
     """
     Update user's password with the new password : hash it, then save it in DB in corresponding user's data

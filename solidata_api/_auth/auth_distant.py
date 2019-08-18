@@ -64,11 +64,11 @@ def getDistantEndpointconfig (func_name) :
   """ 
   # print (". "*50)
 
-  auth_dist_configs = app.config["AUTH_DISTANT_ENDPOINTS"]
-
   func_protocol = functions_protocols[func_name]
   field = func_protocol["endpoint_config"]
   subfield = func_protocol["endpoint_code"]
+
+  auth_dist_configs = app.config["AUTH_DISTANT_ENDPOINTS"]
   endpoint_config = auth_dist_configs[field][subfield] 
 
   return endpoint_config
@@ -222,7 +222,7 @@ def distantAuthCall ( api_request=None, query={}, payload={}, func_name='user_lo
 
 
 
-def distant_auth( func_name=None, return_resp=True, ns_payload=False, raw_payload={} ) : 
+def distant_auth( func_name=None, return_resp=True, ns_payload=False, raw_payload={}, func_fallback=None ) : 
   """
   """
 
@@ -231,7 +231,7 @@ def distant_auth( func_name=None, return_resp=True, ns_payload=False, raw_payloa
   # log.debug("-@- distant_auth ...")
   # log.debug("-@- distant_auth ... func_name : %s", func_name)
   
-  is_distant_auth = app.config['AUTH_MODE'] == 'internal'
+  # is_distant_auth = app.config['AUTH_MODE'] == 'internal'
   # log.debug("-@- distant_auth ... is_distant_auth : %s", is_distant_auth)
 
   def _distant_auth(func):
@@ -243,6 +243,7 @@ def distant_auth( func_name=None, return_resp=True, ns_payload=False, raw_payloa
     @wraps(func)
     def wrapper(*args, **kwargs):
       
+
       print(".......")
       log.debug("-@- distant_auth / inside")
       log.debug("-@- distant_auth / inside ... func_name : %s", func_name)
@@ -250,39 +251,50 @@ def distant_auth( func_name=None, return_resp=True, ns_payload=False, raw_payloa
       log.debug("-@- distant_auth / inside ... ns_payload : %s", ns_payload)
       log.debug("-@- distant_auth / inside ... raw_payload : \n%s", pformat(raw_payload))
       
-      payload = raw_payload
+      is_distant_auth = app.config['AUTH_MODE'] != 'internal'
+      log.debug("-@- distant_auth / inside ... is_distant_auth : %s", is_distant_auth)
 
-      if ns_payload :
-        try :
-          payload = request.get_json()
-        except :
-          payload = raw_payload
-
-      log.debug("-@- distant_auth / inside ... payload : \n%s", pformat(payload) )
-
-      if request : 
-        log.debug("-@- distant_auth / there is a request ..." )
-        # log.debug("getTokenFromRequest/ api_request : \n%s", pformat(request.__dict__) )
-        response = distantAuthCall( api_request=request, func_name=func_name, payload=payload )
-        log.debug("-@- distant_auth / inside ... response : \n%s", pformat(response))
-
-      else : 
-        log.debug("-@- distant_auth / there is no request ..." )
-        # log.debug("getTokenFromRequest/ api_request : %s", pformat(request) )
-        response = None
-
-      print("... ... ...")
-
-      if return_resp == False : 
-        ### return decorated function if return_resp == True
-        print("-@- distant_auth / return_resp == False / return function ....")
-        return func(*args, **kwargs)
+      if is_distant_auth : 
       
-      else : 
-        ### return result if return_resp == False 
-        print("-@- distant_auth / return_resp == True / return response ....")
-        return response
+        payload = raw_payload
 
+        if ns_payload :
+          try :
+            payload = request.get_json()
+          except :
+            payload = raw_payload
+
+        log.debug("-@- distant_auth / inside ... payload : \n%s", pformat(payload) )
+
+        if request : 
+          log.debug("-@- distant_auth / there is a request ..." )
+          # log.debug("getTokenFromRequest/ api_request : \n%s", pformat(request.__dict__) )
+
+
+          # if is_distant_auth : 
+          response = distantAuthCall( api_request=request, func_name=func_name, payload=payload )
+          log.debug("-@- distant_auth / inside ... response : \n%s", pformat(response))
+
+        else : 
+          log.debug("-@- distant_auth / there is no request ..." )
+          # log.debug("getTokenFromRequest/ api_request : %s", pformat(request) )
+          response = None
+
+        print("... ... ...")
+
+        if return_resp == False : 
+          ### return decorated function if return_resp == True
+          print("-@- distant_auth / return_resp == False / return function ....")
+          return func(*args, **kwargs)
+        
+        else : 
+          ### return result if return_resp == False 
+          print("-@- distant_auth / return_resp == True / return response ....")
+          return response
+
+      else : 
+        return func(*args, **kwargs)
+        
     return wrapper
 
   return _distant_auth

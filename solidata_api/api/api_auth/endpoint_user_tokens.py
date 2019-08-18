@@ -57,7 +57,7 @@ cf : https://restfulapi.net/http-status-codes/
 class GetTokenClaims(Resource) :
 
   @jwt_required
-  @distant_auth(func_name="token_claims", return_resp=True )
+  @distant_auth(func_name="token_claims", return_resp=True, func_fallback='jwt_required' )
   def get(self) : 
     """
     Get token claims given a token
@@ -94,7 +94,7 @@ class ConfirmAccessToken(Resource) :
 
   # @jwt_required
   @guest_required
-  @distant_auth(func_name="confirm_access", return_resp=True )
+  @distant_auth(func_name="confirm_access", return_resp=True, func_fallback='guest_required' )
   def get(self) : 
     """
     Confirm access_token given

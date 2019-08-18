@@ -36,7 +36,7 @@ if app.config["ANOJWT_MODE"] == "yes" :
 
     @ns.doc('user_anonymous')
     @ns.doc(responses={200: 'success : anonymous user created with its access and refresh tokens'})
-    @distant_auth(func_name="login_anonymous", return_resp=True)
+    @distant_auth(func_name="login_anonymous", return_resp=True, func_fallback=None)
     def get(self):
       """
       Login as anonymous user
@@ -113,7 +113,7 @@ class Login(Resource):
   @anonymous_required
   @ns.doc(responses={200: 'success : user logged with its access and refresh tokens'})
   @ns.doc(responses={401: 'error client : incorrect login or no user'})
-  @distant_auth(func_name="login_user", return_resp=True, ns_payload=True )
+  @distant_auth(func_name="login_user", return_resp=True, ns_payload=True, func_fallback='anonymous_required' )
   def post(self):
     """
     Log in an user given an email and a password 
