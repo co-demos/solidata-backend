@@ -310,17 +310,17 @@ def anonymous_or_guest_required(func):
 
     claims = returnClaims()
 
-    # if is_distant_auth : 
-    #   log.debug("-@- anonymous_or_guest_required / is_distant_auth : %s", is_distant_auth)
+    if is_distant_auth : 
+      log.debug("-@- anonymous_or_guest_required / is_distant_auth : %s", is_distant_auth)
+      claims = returnClaims()
     #   response = distantAuthCall( request=request, func_name="token_claims" )
     #   log.debug("-@- anonymous checker / response : \n%s", pformat(response) )
     #   claims = response["claims"]
 
-    # else : 
-
-    #   verify_jwt_in_request()
-    #   claims = get_jwt_claims()
-    # log.debug("-@- anonymous_or_guest_required / claims : \n %s", pformat(claims) )
+    else : 
+      verify_jwt_in_request()
+      claims = get_jwt_claims()
+      log.debug("-@- anonymous_or_guest_required / claims : \n %s", pformat(claims) )
     
     # log.debug("-@- anonymous_or_guest_required / kwargs : \n %s", pformat(kwargs) )
 
@@ -342,10 +342,16 @@ def guest_required(func):
     
     log.debug("-@- guest_required")
 
-    claims = returnClaims()
-    # verify_jwt_in_request()
-    # claims = get_jwt_claims()
-    # log.debug("-@- guest_required / claims : \n %s", pformat(claims) )
+    # claims = returnClaims()
+
+    if is_distant_auth : 
+      claims = returnClaims()
+
+    else : 
+      verify_jwt_in_request()
+      claims = get_jwt_claims()
+
+    log.debug("-@- guest_required / claims : \n %s", pformat(claims) )
     
     # log.debug("-@- guest_required / kwargs : \n %s", pformat(kwargs) )
 
@@ -366,10 +372,16 @@ def admin_required(func):
     
     log.debug("-@- admin_required")
 
-    claims = returnClaims()
-    # verify_jwt_in_request()
-    # claims = get_jwt_claims()
-    # log.debug("-@- admin_required / claims : \n %s", pformat(claims) )
+    # claims = returnClaims()
+
+    if is_distant_auth : 
+      claims = returnClaims()
+    
+    else : 
+      verify_jwt_in_request()
+      claims = get_jwt_claims()
+
+    log.debug("-@- admin_required / claims : \n %s", pformat(claims) )
     
     # log.debug("-@- admin_required / kwargs : \n %s", pformat(kwargs) )
 
@@ -390,10 +402,16 @@ def staff_required(func):
     
     log.debug("-@- staff_required")
 
-    claims = returnClaims()
-    # verify_jwt_in_request()
-    # claims = get_jwt_claims()
-    # log.debug("-@- staff_required / claims : \n %s", pformat(claims) )
+    # claims = returnClaims()
+  
+    if is_distant_auth : 
+      claims = returnClaims()
+
+    else : 
+      verify_jwt_in_request()
+      claims = get_jwt_claims()
+
+    log.debug("-@- staff_required / claims : \n %s", pformat(claims) )
     
     # log.debug("-@- staff_required / kwargs : \n %s", pformat(kwargs) )
 
@@ -414,10 +432,16 @@ def renew_pwd_required(func):
     
     log.debug("-@- renew_pwd checker")
 
-    claims = returnClaims()
-    # verify_jwt_in_request()
-    # claims = get_jwt_claims()
-    # log.debug("-@- renew_pwd_required / claims : \n %s", pformat(claims) )
+    # claims = returnClaims()
+  
+    if is_distant_auth : 
+      claims = returnClaims()
+
+    else : 
+      verify_jwt_in_request()
+      claims = get_jwt_claims()
+
+    log.debug("-@- renew_pwd_required / claims : \n %s", pformat(claims) )
     
     # log.debug("-@- renew_pwd_required / kwargs : \n %s", pformat(kwargs) )
 
@@ -441,10 +465,15 @@ def reset_pwd_required(func):
 
     log.debug("kwargs : \n %s", pformat(kwargs) )
 
-    claims = returnClaims()
-    # verify_jwt_in_request()
-    # claims = get_jwt_claims()
-    # log.debug("-@- reset_pwd checker / claims : \n %s", pformat(claims) )
+    # claims = returnClaims()
+
+    if is_distant_auth : 
+      claims = returnClaims()
+
+    else : 
+      verify_jwt_in_request()
+      claims = get_jwt_claims()
+    log.debug("-@- reset_pwd checker / claims : \n %s", pformat(claims) )
 
     try :  
       if claims["reset_pwd"] == True:
@@ -463,11 +492,16 @@ def confirm_email_required(func):
   def wrapper(*args, **kwargs):
     
     log.debug("-@- confirm_email checker")
-    claims = returnClaims()
+    # claims = returnClaims()
 
-    # verify_jwt_in_request()
-    # claims = get_jwt_claims()
-    # log.debug("-@- confirm_email checker / claims : \n %s", pformat(claims) )
+    if is_distant_auth : 
+      claims = returnClaims()
+
+    else : 
+      verify_jwt_in_request()
+      claims = get_jwt_claims()
+
+    log.debug("-@- confirm_email checker / claims : \n %s", pformat(claims) )
     
     if claims["confirm_email"] != True:
       return { "msg" : "'confirm_email' token expected !!! " }, 403
@@ -490,10 +524,15 @@ def current_user_required(func):
 
     log.debug("-@- current_user_required")
 
-    claims = returnClaims()
-    # verify_jwt_in_request()
-    # claims = get_jwt_claims()
-    # log.debug("-@- current_user_required / claims : \n %s", pformat(claims) )
+    # claims = returnClaims()
+  
+    if is_distant_auth : 
+      claims = returnClaims()
+
+    else : 
+      verify_jwt_in_request()
+      claims = get_jwt_claims()
+    log.debug("-@- current_user_required / claims : \n %s", pformat(claims) )
 
     # log.debug("-@- current_user_required / kwargs : \n %s", pformat(kwargs) )
 
