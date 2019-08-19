@@ -207,10 +207,11 @@ def returnClaims(is_optional=False, return_anonymous_as_default=True):
 
     log.debug("-@- returnClaims / local check / is_optional B : %s", is_optional)
     claims = get_jwt_claims()
+    log.debug("-@- returnClaims / local check / claims A : \n%s", pformat(claims))
     if not claims and return_anonymous_as_default : 
       claims = anonymous_claims
 
-  log.debug("-@- returnClaims / claims : \n %s", pformat(claims) )
+  log.debug("-@- returnClaims / claims B : \n%s", pformat(claims) )
 
   return claims
 
