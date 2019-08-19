@@ -275,18 +275,19 @@ def anonymous_required(func):
     else :
 
       log.debug("kwargs : \n %s", pformat(kwargs) )
-      claims = returnClaims()
+      # claims = returnClaims()
 
-      # if is_distant_auth : 
-      #   log.debug("-@- anonymous required / is_distant_auth : %s", is_distant_auth)
+      if is_distant_auth : 
+        log.debug("-@- anonymous required / is_distant_auth : %s", is_distant_auth)
+        claims = returnClaims()
       #   response = distantAuthCall( request=request, func_name="anonymous_required" )
       #   log.debug("-@- anonymous checker / response : \n%s", pformat(response) )
       #   claims = response["claims"]
 
-      # else : 
-      #   verify_jwt_in_request()
-      #   claims = get_jwt_claims()
-      #   log.debug("claims : \n %s", pformat(claims) )
+      else : 
+        verify_jwt_in_request()
+        claims = get_jwt_claims()
+        log.debug("claims : \n %s", pformat(claims) )
         
       if claims["auth"]["role"] != 'anonymous' :
         return { "msg" : "Anonymous users only !!! You need to get an anonymous token" }, 403
