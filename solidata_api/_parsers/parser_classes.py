@@ -334,7 +334,7 @@ class RequestParserBuilder :
         required=False, 
         default=None, 
         help='shuffle the list of results given a seed',
-        location = 'args'
+        location='args'
       )
 
     if add_files : 
@@ -465,7 +465,7 @@ q_data_dsi = RequestParserBuilder(
   add_extra_options_query=True,
   add_map_query=True, 
   add_filter_query=True,
-  # add_shuffle=True, 
+  add_shuffle=True, 
 )
 query_data_dsi_arguments = q_data_dsi.get_parser
 
@@ -479,7 +479,7 @@ q_data_dso = RequestParserBuilder(
   add_extra_options_query=True, 
   add_map_query=True, 
   add_filter_query=True,
-  # add_shuffle=True, 
+  add_shuffle=True, 
 )
 query_data_dso_arguments = q_data_dso.get_parser
 
